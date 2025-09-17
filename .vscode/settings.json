@@ -1,0 +1,11 @@
+{
+    "java.compile.nullAnalysis.mode": "automatic",
+    "java.configuration.updateBuildConfiguration": "interactive",
+    "maven.terminal.favorites": [
+        {
+            "command": "package",
+            "debug": false
+        }
+    ],
+    "java.format.settings.url": "eclipse-formatter.xml"
+}

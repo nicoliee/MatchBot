@@ -1,0 +1,50 @@
+author:
+    name: "MatchBot"
+    icon_url: "https://example.com/icon.png"
+embeds:
+  start:
+    title: "Partida iniciada"
+    description: "Iniciada el <timestamp>"
+    map: "Mapa"
+  finish:
+    title: "Partida finalizada"
+    description: "Terminada el <timestamp>"
+    map: "Mapa"
+    duration: "Duración"
+    score: "Puntuación"
+    winner: "Equipo Ganador"
+    loser: "Equipo Perdedor"
+  list:
+    map: "Mapa"
+    score: "Puntuación"
+    players: "Jugadores"
+    observers: "Espectadores"
+    starting:
+      title: "Partida por Iniciar"
+      description: "Iniciando el <timestamp>"
+    running:
+      title: "Partida en Curso"
+      description: "Iniciada el <timestamp>"
+      duration: "Duración"
+    idle:
+      title: "Partida Inactiva"
+      description: "Esperando jugadores..."
+    finished:
+      title: "Partida Finalizada"
+      description: "Terminada el <timestamp>"
+      duration: "Duración"
+time:
+  seconds: "Segundos"
+  second: "Segundo"
+  minutes: "Minutos"
+  minute: "Minuto"
+  hours: "Horas"
+  hour: "Hora"
+stats:
+  kills: "Kills"
+  deaths: "Muertes"
+  assists: "Asistencias"
+  damageDone: "Daño Hecho"
+  damageTaken: "Daño Recibido"
+  bowAccuracy: "Precisión con Arco"
+  points: "Puntos"
