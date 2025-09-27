@@ -11,7 +11,7 @@ import me.tbg.match.bot.configs.DiscordBot;
 import me.tbg.match.bot.configs.MessagesConfig;
 import me.tbg.match.bot.stats.GetStats;
 import me.tbg.match.bot.stats.Stats;
-import org.javacord.api.entity.message.embed.EmbedBuilder;
+import net.dv8tion.jda.api.EmbedBuilder;
 import tc.oc.pgm.api.match.Match;
 import tc.oc.pgm.api.match.MatchPhase;
 import tc.oc.pgm.api.party.Competitor;
@@ -21,13 +21,13 @@ import tc.oc.pgm.teams.Team;
 import tc.oc.pgm.teams.TeamMatchModule;
 
 public class ListEmbed {
-  public static EmbedBuilder create(Match match, DiscordBot bot) {
+  public static EmbedBuilder create(Match match) {
     if (match == null) {
       return null;
     }
     MatchPhase currentPhase = match.getPhase();
     EmbedBuilder embed = new EmbedBuilder()
-        .setTimestampToNow()
+        .setTimestamp(Instant.now())
         .addField(
             "🗺️ " + MessagesConfig.message("embeds.list.map"), match.getMap().getName(), true)
         .setAuthor(
@@ -42,7 +42,7 @@ public class ListEmbed {
             DiscordBot.parseDuration(match.getDuration()),
             true);
         // Puntuación de los equipos
-        if (DiscordBot.getMapGamemodes(match).contains("scorebox")) {
+        if (match.getMap().getGamemode().toString().toLowerCase().equals("scorebox")) {
           addPoints(embed, match);
         } else {
           embed.addField("_ _", "_ _", true);
@@ -63,12 +63,12 @@ public class ListEmbed {
         embed.setDescription(MessagesConfig.message("embeds.list.running.description")
             .replace(
                 "<timestamp>",
-                "<t:" + bot.getMatchStartTimestamp(Long.parseLong(match.getId())) + ":f>"));
+                "<t:" + DiscordBot.getMatchStartTimestamp(Long.parseLong(match.getId())) + ":f>"));
         embed.addField(
             "⏱️ " + MessagesConfig.message("embeds.list.running.duration"),
             DiscordBot.parseDuration(match.getDuration()),
             true);
-        if (DiscordBot.getMapGamemodes(match).contains("scorebox")) {
+        if (match.getMap().getGamemode().toString().toLowerCase().equals("scorebox")) {
           addPoints(embed, match);
         } else {
           embed.addField("_ _", "_ _", true);
@@ -123,16 +123,13 @@ public class ListEmbed {
           }
         }
       } else {
-        // Obtener los equipos y sus jugadores
         List<Team> teams =
             new ArrayList<>(match.needModule(TeamMatchModule.class).getTeams());
         for (Team team : teams) {
-          // Obtener los nombres de los jugadores en el equipo
           List<String> playerNames = team.getPlayers().stream()
               .map(MatchPlayer::getNameLegacy)
               .collect(Collectors.toList());
 
-          // Agregar una sección para cada equipo
           if (!playerNames.isEmpty()) {
             embed.addField(
                 team.getDefaultName() + " [👥: " + team.getSize() + "]",

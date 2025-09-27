@@ -7,7 +7,7 @@ import java.util.Map;
 import me.tbg.match.bot.configs.DiscordBot;
 import me.tbg.match.bot.configs.MessagesConfig;
 import me.tbg.match.bot.stats.Stats;
-import org.javacord.api.entity.message.embed.EmbedBuilder;
+import net.dv8tion.jda.api.EmbedBuilder;
 import tc.oc.pgm.api.map.MapInfo;
 import tc.oc.pgm.api.match.Match;
 import tc.oc.pgm.api.party.Competitor;
@@ -15,11 +15,11 @@ import tc.oc.pgm.score.ScoreMatchModule;
 
 public class FinishMatchEmbed {
   public static EmbedBuilder create(
-      Match match, MapInfo map, List<Stats> winnerStats, List<Stats> loserStats, DiscordBot bot) {
+      Match match, MapInfo map, List<Stats> winnerStats, List<Stats> loserStats) {
     EmbedBuilder embed = new EmbedBuilder()
         .setColor(Color.RED)
         .setTitle(MessagesConfig.message("embeds.finish.title"))
-        .setTimestampToNow()
+        .setTimestamp(Instant.now())
         .setAuthor(
             MessagesConfig.message("author.name"), null, MessagesConfig.message("author.icon_url"))
         .setDescription(MessagesConfig.message("embeds.finish.description")
@@ -32,7 +32,8 @@ public class FinishMatchEmbed {
         DiscordBot.parseDuration(match.getDuration()),
         true);
 
-    if (DiscordBot.getMapGamemodes(match).contains("scorebox")) {
+    if (match.getMap().getGamemode().toString().toLowerCase().equals("scorebox")
+        && match.hasModule(ScoreMatchModule.class)) {
       StringBuilder scores = new StringBuilder();
       for (Map.Entry<Competitor, Double> entry :
           match.getModule(ScoreMatchModule.class).getScores().entrySet()) {
@@ -41,7 +42,7 @@ public class FinishMatchEmbed {
         int score = (int) Math.round(entry.getValue());
         scores.append("**").append(team.getDefaultName()).append(":** ").append(score);
         if (isWinner) {
-          scores.append(" 🏆"); // Añadir emoji de trofeo si es ganador
+          scores.append(" 🏆");
         }
         scores.append("\n");
       }
@@ -51,13 +52,11 @@ public class FinishMatchEmbed {
       embed.addField("_ _", "_ _", true);
     }
 
-    // Ganadores
     addTeamStatsFields(embed, "🏆", MessagesConfig.message("embeds.finish.winner"), winnerStats);
 
     // Espacio visual
-    embed.addField("_ _", "_ _");
+    embed.addField("_ _", "_ _", false);
 
-    // Perdedores
     addTeamStatsFields(embed, "⚔️", MessagesConfig.message("embeds.finish.loser"), loserStats);
     return embed;
   }
@@ -85,7 +84,6 @@ public class FinishMatchEmbed {
             + String.format("%.1f", stats.getBowAccuracy()) + "%");
       }
 
-      // Si los puntos no son 0, se añade al entry
       if (stats.getPoints() != 0) {
         entry.append(" | `" + MessagesConfig.message("stats.points") + ":` " + stats.getPoints());
       }
@@ -93,7 +91,8 @@ public class FinishMatchEmbed {
       entry.append("\n\n");
 
       if (chunk.length() + entry.length() > MAX_FIELD_LENGTH) {
-        embed.addField(isFirstField ? titleEmoji + " " + teamName : "\u200B", chunk.toString());
+        embed.addField(
+            isFirstField ? titleEmoji + " " + teamName : "\u200B", chunk.toString(), false);
         chunk = new StringBuilder();
         isFirstField = false;
       }
@@ -102,7 +101,8 @@ public class FinishMatchEmbed {
     }
 
     if (chunk.length() != 0) {
-      embed.addField(isFirstField ? titleEmoji + " " + teamName : "\u200B", chunk.toString());
+      embed.addField(
+          isFirstField ? titleEmoji + " " + teamName : "\u200B", chunk.toString(), false);
     }
   }
 }

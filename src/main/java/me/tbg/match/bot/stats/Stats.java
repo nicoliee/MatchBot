@@ -34,19 +34,6 @@ public class Stats {
     this.party = party;
   }
 
-  @Override
-  public String toString() {
-    return "PlayerStatUpdate{" + "username='"
-        + username + '\'' + ", kills="
-        + kills + ", deaths="
-        + deaths + ", assists="
-        + assists + ", damageDone="
-        + damageDone + ", damageTaken="
-        + damageTaken + ", BowAccuracy="
-        + BowAccuracy + ", points="
-        + points + '}';
-  }
-
   // Getters
   public String getUsername() {
     return username;

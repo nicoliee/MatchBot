@@ -35,16 +35,19 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>tc.oc.pgm</groupId>
-            <artifactId>util</artifactId>
-            <version>0.16-SNAPSHOT</version>
-            <scope>provided</scope>
+            <groupId>net.dv8tion</groupId>
+            <artifactId>JDA</artifactId>
+            <version>5.6.1</version>
         </dependency>
         <dependency>
-            <groupId>org.javacord</groupId>
-            <artifactId>javacord</artifactId>
-            <version>3.8.0</version>
-            <type>pom</type>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>2.0.9</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>2.0.9</version>
         </dependency>
     </dependencies>
     <build>
@@ -61,19 +64,18 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
+                <version>3.11.0</version>
                 <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
+                    <release>21</release>
                     <compilerArgs>
-                        <arg>-parameters</arg> <!-- Required for aikar/commands to auto generate syntax -->
+                        <arg>-parameters</arg>
                     </compilerArgs>
                 </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.2.3</version>
+                <version>3.5.3</version>
                 <configuration>
                     <createDependencyReducedPom>false</createDependencyReducedPom>
                     <minimizeJar>true</minimizeJar>
@@ -109,6 +111,10 @@
                             <pattern>com.fasterxml</pattern>
                             <shadedPattern>tc.oc.occ.bolt.lib.jackson</shadedPattern>
                         </relocation>
+                        <relocation>
+                            <pattern>org.slf4j</pattern>
+                            <shadedPattern>tc.oc.occ.bolt.lib.slf4j</shadedPattern>
+                        </relocation>
                     </relocations>
                 </configuration>
                 <executions>
@@ -126,15 +132,6 @@
                 <groupId>com.diffplug.spotless</groupId>
                 <artifactId>spotless-maven-plugin</artifactId>
                 <version>2.43.0</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>apply</goal>
-                            <goal>check</goal>
-                        </goals>
-                        <phase>compile</phase>
-                    </execution>
-                </executions>
                 <configuration>
                     <java>
                         <removeUnusedImports/>
@@ -152,6 +149,7 @@
     <!-- Special Properties -->
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.release>21</maven.compiler.release>
         <skipTests>true</skipTests>
     </properties>
 

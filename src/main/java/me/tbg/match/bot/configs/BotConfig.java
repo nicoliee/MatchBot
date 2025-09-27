@@ -1,6 +1,5 @@
 package me.tbg.match.bot.configs;
 
-import java.util.ArrayList;
 import java.util.List;
 import org.bukkit.configuration.Configuration;
 
@@ -12,7 +11,9 @@ public class BotConfig {
   public static String fallbackMapImages;
   public static String mapImageNotFound;
   public static List<String> maps;
+  public static List<String> blacklistMaps;
   public static String messageEndMatch;
+  public static String ip;
 
   public static void load(Configuration config) {
     enabled = config.getBoolean("enabled");
@@ -21,9 +22,10 @@ public class BotConfig {
     matchChannel = config.getString("match-channel");
     fallbackMapImages = config.getString("fallback-map-images");
     mapImageNotFound = config.getString("map-image-not-found");
-    List<String> configMaps = config.getStringList("maps");
-    maps = (configMaps != null) ? configMaps : new ArrayList<>();
+    maps = config.getStringList("maps.allow");
+    blacklistMaps = config.getStringList("maps.blacklist");
     messageEndMatch = config.getString("end-match");
+    ip = config.getString("ip");
   }
 
   public static boolean isEnabled() {
@@ -54,7 +56,19 @@ public class BotConfig {
     return maps;
   }
 
+  public static List<String> getBlacklistMaps() {
+    return blacklistMaps;
+  }
+
   public static String getMessageEndMatch() {
     return messageEndMatch;
+  }
+
+  public static String getIp() {
+    return ip;
+  }
+
+  public static void addBlacklist(List<String> newBlacklist) {
+    blacklistMaps.addAll(newBlacklist);
   }
 }

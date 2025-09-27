@@ -1,76 +1,62 @@
 package me.tbg.match.bot.listeners;
 
+import javax.annotation.Nonnull;
 import me.tbg.match.bot.configs.DiscordBot;
+import me.tbg.match.bot.embedBuilders.IpEmbed;
 import me.tbg.match.bot.embedBuilders.ListEmbed;
 import me.tbg.match.bot.utils.MatchTracker;
-import org.javacord.api.DiscordApi;
-import org.javacord.api.entity.message.embed.EmbedBuilder;
-import org.javacord.api.event.message.MessageCreateEvent;
-import org.javacord.api.util.logging.ExceptionLogger;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
-public class DiscordMessageListener {
+public class DiscordMessageListener extends ListenerAdapter {
 
-  private DiscordApi api;
-  private DiscordBot bot;
+  public DiscordMessageListener() {}
 
-  public DiscordMessageListener(DiscordApi api, DiscordBot bot) {
-    this.api = api;
-    this.bot = bot;
-  }
-
-  public void setupMessageListeners() {
-    if (api != null) {
-
-      // Listener para mensajes
-      api.addMessageCreateListener(event -> {
-        try {
-          if (event.getMessageAuthor().isBotUser()
-              || isProblematicMessage(event)
-              || !event.getMessage().canYouReadContent()) {
-            return;
-          }
-          String messageContent = event.getMessageContent();
-          if (messageContent.startsWith("=")) {
-            String command = messageContent.substring(1).toLowerCase().trim();
-
-            switch (command) {
-              case "list":
-                handleListCommand(event);
-                break;
-              default:
-                break;
-            }
-          }
-        } catch (Exception e) {
-        }
-      });
-    }
-  }
-
-  private boolean isProblematicMessage(MessageCreateEvent event) {
+  @Override
+  public void onMessageReceived(@Nonnull MessageReceivedEvent event) {
     try {
-      // Verificar si el mensaje tiene componentes complejos que podrían causar problemas
-      return event.getMessage().getComponents().size() > 0
-          || event.getMessage().getEmbeds().size() > 1
-          || event.getMessage().getReferencedMessage().isPresent();
-    } catch (Exception e) {
-      // Si hay error al verificar, asumir que es problemático
-      return true;
-    }
-  }
+      if (event.getAuthor().isBot()) return;
+      if (!event.isFromGuild()) return;
+      if (event.getMessage().getEmbeds().size() >= 1) return;
+      if (event.getMessage().getReferencedMessage() != null) return;
 
-  private void handleListCommand(MessageCreateEvent event) {
-    try {
-
-      if (MatchTracker.getCurrentMatch() != null) {
-
-        EmbedBuilder embed = ListEmbed.create(MatchTracker.getCurrentMatch(), bot);
-        if (embed != null) {
-          bot.setEmbedThumbnail(MatchTracker.getCurrentMatch().getMap(), embed);
-          event.getChannel().sendMessage(embed).exceptionally(ExceptionLogger.get());
-        }
+      String content = event.getMessage().getContentRaw();
+      if (!content.startsWith("=")) return;
+      String command = content.substring(1).toLowerCase().trim();
+      switch (command) {
+        case "list":
+          handleListCommand(event);
+          break;
+        case "ip":
+          handleIpCommand(event);
+          break;
+        default:
+          break;
       }
     } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
+  private void handleListCommand(MessageReceivedEvent event) {
+    try {
+      if (MatchTracker.getCurrentMatch() != null) {
+        EmbedBuilder embed = ListEmbed.create(MatchTracker.getCurrentMatch());
+        if (embed != null) {
+          DiscordBot.setEmbedThumbnail(MatchTracker.getCurrentMatch().getMap(), embed);
+          event.getChannel().sendMessageEmbeds(embed.build()).queue();
+        }
+      }
+    } catch (Exception ignored) {
+    }
+  }
+
+  private void handleIpCommand(MessageReceivedEvent event) {
+    try {
+      EmbedBuilder embed = IpEmbed.create();
+      event.getChannel().sendMessageEmbeds(embed.build()).queue();
+    } catch (Exception ignored) {
     }
   }
 }

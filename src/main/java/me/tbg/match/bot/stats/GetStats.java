@@ -27,9 +27,7 @@ public class GetStats {
     List<Stats> winnerStats = new ArrayList<>();
     List<Stats> loserStats = new ArrayList<>();
 
-    // Recopilamos estadísticas de los jugadores
     for (MatchPlayer player : allPlayers) {
-      // Obtener estadísticas del jugador
       PlayerStats playerStats = statsModule.getPlayerStat(player);
       int totalPoints = (int) scoreMatchModule.getContribution(player.getId());
       boolean isWinner = match.getWinners().contains(player.getCompetitor());
@@ -59,7 +57,6 @@ public class GetStats {
           totalPoints,
           party);
 
-      // Añadir el jugador a la lista de ganadores o perdedores según corresponda
       if (isWinner) {
         winnerStats.add(stats);
       } else {
@@ -67,7 +64,6 @@ public class GetStats {
       }
     }
 
-    // Devolver un mapa con las estadísticas de ganadores y perdedores
     Map<String, List<Stats>> statsMap = new HashMap<>();
     statsMap.put("winners", winnerStats);
     statsMap.put("losers", loserStats);
@@ -75,7 +71,6 @@ public class GetStats {
     return statsMap;
   }
 
-  // No toma en cuenta jugadores desconectados, si lo necesita usar el otro método
   public static Map<String, List<Stats>> getPlayerStatsByTeams(Match match) {
     Map<String, List<Stats>> teamStatsMap = new HashMap<>();
     for (Party party : match.getParties()) {
@@ -104,7 +99,6 @@ public class GetStats {
             totalPoints,
             party);
 
-        // Añadir el jugador a la lista del equipo correspondiente
         teamStatsMap
             .computeIfAbsent(party.getDefaultName(), k -> new ArrayList<>())
             .add(stats);

@@ -13,7 +13,6 @@ import tc.oc.pgm.api.player.MatchPlayer;
 
 public class MatchBot extends JavaPlugin {
   private static MatchBot instance;
-  private DiscordBot bot;
   private final Map<String, MatchPlayer> disconnectedPlayers = new HashMap<>();
 
   @Override
@@ -23,17 +22,31 @@ public class MatchBot extends JavaPlugin {
     this.reloadConfig();
     BotConfig.load(getConfig());
     MessagesConfig.setup();
-    this.bot = new DiscordBot(getLogger());
+    // Iniciar el bot de Discord usando el método estático seguro.
+    DiscordBot.enable();
+
     this.registerListeners();
   }
 
+  @Override
+  public void onDisable() {
+    // Apagar Discord limpiamente.
+    DiscordBot.disable();
+  }
+
+  // Método auxiliar opcional para recargar el bot sin reiniciar el servidor.
+  public void reloadBot() {
+    this.reloadConfig();
+    BotConfig.load(getConfig());
+    DiscordBot.reload();
+  }
+
   private void registerListeners() {
-    this.getServer().getPluginManager().registerEvents(new MatchListener(bot), this);
+    this.getServer().getPluginManager().registerEvents(new MatchListener(), this);
     this.getServer().getPluginManager().registerEvents(new DisconnectedPlayersTracker(this), this);
     this.getServer().getPluginManager().registerEvents(new MatchTracker(), this);
   }
 
-  // Getters and Setters for disconnectedPlayers
   public Map<String, MatchPlayer> getDisconnectedPlayers() {
     return disconnectedPlayers;
   }
@@ -52,9 +65,5 @@ public class MatchBot extends JavaPlugin {
 
   public static MatchBot getInstance() {
     return instance;
-  }
-
-  public DiscordBot getBot() {
-    return bot;
   }
 }

@@ -2,9 +2,12 @@ author:
     name: "MatchBot"
     icon_url: "https://example.com/icon.png"
 embeds:
+  ip:
+    title: "IP del servidor de Minecraft"
+    description: "```<ip>```" 
   start:
     title: "Partida iniciada"
-    description: "Iniciada el <timestamp>"
+    description: "Iniciada el <timestamp>" 
     map: "Mapa"
   finish:
     title: "Partida finalizada"
@@ -21,7 +24,7 @@ embeds:
     observers: "Espectadores"
     starting:
       title: "Partida por Iniciar"
-      description: "Iniciando el <timestamp>"
+      description: "Iniciando el <timestamp>" 
     running:
       title: "Partida en Curso"
       description: "Iniciada el <timestamp>"

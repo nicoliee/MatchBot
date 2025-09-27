@@ -1,37 +1,32 @@
 # MatchBot (Fork)
 A Minecraft to Discord bot, interacting with [PGM](https://github.com/PGMDev/PGM/) Match events to display match information live.
 
-This project's structure is a modified version of [MatchBot](https://github.com/TBG1000/MatchBot), developed by [TBG](https://github.com/TBG1000) with a slight scope to scorebox matches (If someone is willing to create different stats for other gamemodes please go ahead :D)
+
+> **⚠️ Important:** This bot runs on a single Minecraft server, and is not designed with proxies, networks, or multiple servers in mind.
+
+Fork of [MatchBot](https://github.com/TBG1000/MatchBot), developed by [TBG](https://github.com/TBG1000), with a focus on players and their statistics, specifically scorebox stats. While it is primarily designed for scorebox matches, it can also be used with other gamemodes. If anyone wants to create additional stats for other gamemodes, feel free to do so! :D
 
 ## Differences
-#### Match Start Event
-The match start display has been enhanced to focus on team composition, providing a clear overview of player distribution across teams.
-
-#### Match Finish Event
-The match end summary now displays comprehensive player statistics including:
-- Kills
-- Deaths
-- Assists
-- Damage Dealt
-- Damage Taken
-- Bow Accuracy
-- Points (Scorebox gamemodes only)
+#### Embeds
+This fork shifts focus from map details to player information. Instead of highlighting map features, it shows who's playing at match start and provides detailed stats for each player at match end. The embeds are designed to be community-friendly.
 
 #### List Command on Discord
 The `=list` command is available to all Discord users and provides real-time information including:
 1. Current Match State
 2. Active Map
-3. Team Rosters
+3. Players on Each Team (Including observers)
 4. Player Statistics (when used after match completion)
 
+### Rewritten
+MatchBot is now built with [JDA](https://github.com/discord-jda/JDA), as Javacord is no longer maintained.
+
+### Thumbnails
+JDA does not support using BufferedImage directly for thumbnails. Therefore, you must rely on fallback images and the not-found image configured in config.yml.
 
 ## Description
 
 MatchBot will listen to [`MatchStartEvent`](https://github.com/PGMDev/PGM/blob/dev/core/src/main/java/tc/oc/pgm/api/match/event/MatchStartEvent.java) and [`MatchFinishEvent`](https://github.com/PGMDev/PGM/blob/dev/core/src/main/java/tc/oc/pgm/api/match/event/MatchFinishEvent.java) to populate a Discord [embed](https://javacord.org/wiki/basic-tutorials/embeds.html#creating-an-embed) with information about a started or finished match.
 
-MatchBot is built with [Javacord](https://javacord.org/), an awesome Java library for Discord bots.
-
-This bot runs on a single Minecraft server, and is not designed with proxies, networks, or multiple servers in mind.
 
 ## Building
 
@@ -41,12 +36,12 @@ This bot runs on a single Minecraft server, and is not designed with proxies, ne
 ```bash
 mvn spotless:apply
 ```
-5. Compile the project.
+4. Compile the project.
 ```bash
 mvn package
 ```
 
-You'll find the bot's `.jar` file inside the `target` folder of the project's root directory.
+5. You'll find the bot's `.jar` file inside the `target` folder of the project's root directory.
 
 ## Installing
 

@@ -1,130 +1,128 @@
 package me.tbg.match.bot.configs;
 
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Path;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
-import javax.imageio.ImageIO;
 import me.tbg.match.bot.listeners.DiscordMessageListener;
-import org.javacord.api.DiscordApi;
-import org.javacord.api.DiscordApiBuilder;
-import org.javacord.api.entity.activity.ActivityType;
-import org.javacord.api.entity.channel.Channel;
-import org.javacord.api.entity.intent.Intent;
-import org.javacord.api.entity.message.embed.EmbedBuilder;
-import org.javacord.api.util.logging.ExceptionLogger;
-import tc.oc.pgm.api.map.Gamemode;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.requests.GatewayIntent;
 import tc.oc.pgm.api.map.MapInfo;
 import tc.oc.pgm.api.match.Match;
 
-public class DiscordBot {
+public class DiscordBot extends ListenerAdapter {
 
-  private DiscordApi api;
-  private Logger logger;
+  private static JDA jda;
+  private static Logger logger;
 
-  private Map<Long, Long> matchMessageMap = new HashMap<>();
-  private Map<Long, Long> matchStartTimestamps = new HashMap<>();
-  private Map<Long, Integer> matchStartPlayers = new HashMap<>();
-  private DiscordMessageListener messageListener;
+  private static final Map<Long, Long> matchMessageMap = new HashMap<>();
+  private static final Map<Long, Long> matchStartTimestamps = new HashMap<>();
+  private static DiscordMessageListener messageListener;
 
   public DiscordBot(Logger logger) {
-    this.logger = logger;
-    reload();
+    DiscordBot.logger = logger;
   }
 
-  public void enable() {
-    if (BotConfig.isEnabled()) {
-      new DiscordApiBuilder()
-          .setToken(BotConfig.getToken())
-          .setWaitForServersOnStartup(false)
-          .setWaitForUsersOnStartup(false)
-          .addIntents(Intent.MESSAGE_CONTENT)
-          .login()
-          .thenAcceptAsync(api -> {
-            setAPI(api);
-            api.setMessageCacheSize(1, 60 * 60);
-            messageListener = new DiscordMessageListener(api, this);
-            messageListener.setupMessageListeners();
-            logger.info("MatchBot is now active!");
-          })
-          .exceptionally(throwable -> {
-            logger.info("Failed to login to Discord: " + throwable.getMessage());
-            return null;
-          });
+  public static void enable() {
+    if (!BotConfig.isEnabled()) return;
+    if (jda != null) return;
+    boolean needPrivileged = true;
+    try {
+      jda = buildJDA(needPrivileged);
+      jda.awaitReady();
+    } catch (IllegalStateException ise) {
+      if (logger != null)
+        logger.warning(
+            "Fallo al iniciar JDA con intents privilegiados (MESSAGE_CONTENT). "
+                + "Actívalos en el Developer Portal o usa sólo slash commands. Reintentando sin ellos...");
+      safeShutdown();
+      try {
+        jda = buildJDA(false);
+        jda.awaitReady();
+        if (logger != null)
+          logger.info(
+              "JDA iniciado sin intents privilegiados. Los comandos prefijo '=' no funcionarán.");
+      } catch (InterruptedException e2) {
+        Thread.currentThread().interrupt();
+        if (logger != null)
+          logger.severe("Interrumpido esperando JDA en reintento: " + e2.getMessage());
+        return;
+      } catch (IllegalStateException ise2) {
+        if (logger != null)
+          logger.severe(
+              "No se pudo iniciar JDA incluso sin intents privilegiados: " + ise2.getMessage());
+        return;
+      }
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      if (logger != null) logger.severe("Interrumpido esperando JDA: " + e.getMessage());
+      return;
+    }
+
+    messageListener = new DiscordMessageListener();
+    jda.addEventListener(messageListener);
+    if (logger != null) logger.info("MatchBot (JDA) is now active!");
+  }
+
+  private static JDA buildJDA(boolean privileged) {
+    JDABuilder builder = JDABuilder.createDefault(BotConfig.getToken())
+        .enableIntents(GatewayIntent.GUILD_MESSAGES)
+        .addEventListeners(new DiscordBot(logger));
+    if (privileged) {
+      builder.enableIntents(GatewayIntent.MESSAGE_CONTENT);
+    }
+    return builder.build();
+  }
+
+  private static void safeShutdown() {
+    if (jda != null) {
+      try {
+        jda.shutdownNow();
+      } catch (Exception ignored) {
+      }
+      jda = null;
     }
   }
 
-  private void setAPI(DiscordApi api) {
-    this.api = api;
-  }
-
-  public void disable() {
-    if (this.api != null) {
-      this.api.disconnect();
-    }
-    this.api = null;
-  }
-
-  public void sendMatchEmbed(EmbedBuilder embed, Match match, String matchChannel, String roleId) {
-    if (api != null) {
-      CompletableFuture.runAsync(() -> {
-        api.updateActivity(ActivityType.PLAYING, match.getMap().getName());
-
-        api.getServerById(BotConfig.getServerId())
-            .flatMap(server -> server.getChannelById(matchChannel).flatMap(Channel::asTextChannel))
-            .ifPresent(textChannel -> {
-              String content = (roleId != null) ? "<@&" + roleId + ">" : "";
-
-              textChannel
-                  .sendMessage(content, embed)
-                  .thenAccept(
-                      message -> matchMessageMap.put(Long.valueOf(match.getId()), message.getId()))
-                  .exceptionally(ExceptionLogger.get());
-            });
-      });
-    }
+  public static void disable() {
+    if (jda == null) return;
+    jda.shutdown();
+    jda = null;
   }
 
   public static void sendMatchEmbed(
-      DiscordApi api,
-      EmbedBuilder embed,
-      Match match,
-      String matchChannel,
-      String serverId,
-      Map<Long, Long> messageMap) {
-    if (api != null) {
-      CompletableFuture.runAsync(() -> {
-        api.updateActivity(ActivityType.PLAYING, match.getMap().getName());
-
-        api.getServerById(serverId)
-            .flatMap(server -> server.getChannelById(matchChannel).flatMap(Channel::asTextChannel))
-            .ifPresent(textChannel -> textChannel
-                .sendMessage(embed)
-                .thenAccept(message -> messageMap.put(Long.valueOf(match.getId()), message.getId()))
-                .exceptionally(ExceptionLogger.get()));
-      });
-    }
+      EmbedBuilder embed, Match match, String channelId, String roleId) {
+    if (jda == null) return;
+    CompletableFuture.runAsync(() -> {
+      TextChannel channel = jda.getTextChannelById(channelId);
+      if (channel == null) return;
+      String content = (roleId != null && !roleId.isEmpty()) ? "<@&" + roleId + ">" : null;
+      if (content == null || content.isEmpty()) {
+        channel
+            .sendMessageEmbeds(embed.build())
+            .queue(msg -> matchMessageMap.put(Long.parseLong(match.getId()), msg.getIdLong()));
+      } else {
+        channel
+            .sendMessage(content)
+            .setEmbeds(embed.build())
+            .queue(msg -> matchMessageMap.put(Long.parseLong(match.getId()), msg.getIdLong()));
+      }
+    });
   }
 
-  public EmbedBuilder setEmbedThumbnail(MapInfo map, EmbedBuilder embed) {
-    try {
-      embed.setThumbnail(getMapImage(map));
-      return embed;
-    } catch (IOException e) {
-      if (!BotConfig.getFallbackMapImages().isEmpty()) {
-        String mapName = map.getName().replace(" ", "%20");
-        embed.setThumbnail(BotConfig.getFallbackMapImages() + mapName + "/map.png");
-        return embed;
-      } else if (!BotConfig.getMapImageNotFound().isEmpty()) {
-        embed.setThumbnail(BotConfig.getMapImageNotFound());
-        return embed;
-      }
+  public static EmbedBuilder setEmbedThumbnail(MapInfo map, EmbedBuilder embed) {
+    // JDA can't take BufferedImage directly; rely on configured URLs only
+    // Removed direct map image reading for JDA (no direct BufferedImage thumbnail support)
+    if (!BotConfig.getFallbackMapImages().isEmpty()) {
+      String mapName = map.getName().replace(" ", "%20");
+      embed.setThumbnail(BotConfig.getFallbackMapImages() + mapName + "/map.png");
+    } else if (!BotConfig.getMapImageNotFound().isEmpty()) {
+      embed.setThumbnail(BotConfig.getMapImageNotFound());
     }
     return embed;
   }
@@ -168,40 +166,23 @@ public class DiscordBot {
     return result.length() > 0 ? result.toString().trim() : "_Unavailable_";
   }
 
-  public static String getMapGamemodes(Match match) {
-    return match.getMap().getGamemodes().stream()
-        .map(Gamemode::getId)
-        .collect(Collectors.joining(", "));
-  }
-
-  public BufferedImage getMapImage(MapInfo map) throws IOException {
-    Path sourceDir = map.getSource().getAbsoluteDir();
-    File pngFile = new File(sourceDir.toFile(), "map.png");
-    return ImageIO.read(pngFile);
-  }
-
-  public void storeMatchStartData(long matchId, Long startTimestamp, Integer players) {
+  public static void storeMatchStartData(long matchId, Long startTimestamp) {
     matchStartTimestamps.put(matchId, startTimestamp);
-    matchStartPlayers.put(matchId, players);
   }
 
-  public Long getMatchStartTimestamp(long matchId) {
+  public static Long getMatchStartTimestamp(long matchId) {
     return matchStartTimestamps.get(matchId);
   }
 
-  public Integer getMatchStartPlayers(long matchId) {
-    return matchStartPlayers.get(matchId);
-  }
-
-  public void reload() {
-    if (this.api != null && !BotConfig.isEnabled()) {
+  public static void reload() {
+    if (!BotConfig.isEnabled()) {
       disable();
-    } else if (this.api == null && BotConfig.isEnabled()) {
-      enable();
+      return;
     }
+    if (jda == null) enable();
   }
 
-  public DiscordApi getApi() {
-    return api;
+  public static JDA getJDA() {
+    return jda;
   }
 }

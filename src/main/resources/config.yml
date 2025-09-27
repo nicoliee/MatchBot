@@ -11,10 +11,16 @@ fallback-map-images: "" # This will be used in case no map.png is found the map'
 # Example: https://raw.githubusercontent.com/TBG1000/MapImages/main/map_image_not_found.png
 map-image-not-found: "" # Image URL to display in the embed's thumbnail if no image is found.
 
-# Message to send if an embed is created successfully.
+# Message to send  at the end of the match if an embed is created successfully.
 end-match: "&6Stats: &bRevisa el canal #partidas en &1&nDiscord."
+ip: "" # IP of the server to display when !ip command is used.
 
-maps: # list of maps wich will be created embeds, if empty all maps will be used.
-  # Example:
-  # - The Towers:TE
-  # - Mini Towers:TE
+maps:
+  allow: # List of maps for which embeds will be created. If empty, all maps will be used.
+    # Example:
+    # - The Towers:TE
+    # - Mini Towers:TE
+
+  blacklist: # List of map names that will be ignored when creating embeds.
+    # Example:
+    # - Blacklisted Map Name
