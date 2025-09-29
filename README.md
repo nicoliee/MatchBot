@@ -20,8 +20,9 @@ The `=list` command is available to all Discord users and provides real-time inf
 ### Rewritten
 MatchBot is now built with [JDA](https://github.com/discord-jda/JDA), as Javacord is no longer maintained.
 
-### Thumbnails
-JDA does not support using BufferedImage directly for thumbnails. Therefore, you must rely on fallback images and the not-found image configured in config.yml.
+### ⚠️ Thumbnails
+In the original plugin, if your map contained a `map.png`, it was automatically used as the thumbnail.  
+Here, thumbnails rely on the configured fallback images and the not-found image from `config.yml` instead.
 
 ## Description
 
@@ -60,11 +61,17 @@ You can also find out how to get server, role or channel IDs [here](https://supp
 
 
 ## Sample images
-![Match start sample](https://i.imgur.com/O6jHaCw.png)
-![Match finish sample](https://i.imgur.com/wKVOutu.png)
-![List command sample #1](https://i.imgur.com/SLT8QiD.png)
-![List command sample #2](https://i.imgur.com/CYkyhM1.png)
-![List command sample #3](https://i.imgur.com/1Ub38L6.png)
+
+### Automatic Embeds
+| Match Start | Match Finished |
+|-------------|----------------|
+| ![Match start sample](https://i.imgur.com/O6jHaCw.png) | ![Match finish sample](https://i.imgur.com/wKVOutu.png) |
+
+### List Command
+| Idle Phase | Starting Phase | Running Phase |
+|------------|----------------|---------------|
+| ![List command sample #1](https://i.imgur.com/SLT8QiD.png) | ![List command sample #2](https://i.imgur.com/CYkyhM1.png) | ![List command sample #3](https://i.imgur.com/1Ub38L6.png) |
+
 
 ## Config
     
@@ -77,14 +84,14 @@ match-channel: "" # ID of channel where match embeds will be sent.
 
 # Fallback URL for map.png images
 # Example: https://raw.githubusercontent.com/TBG1000/MapImages/main/Maps/
-fallback-map-images: "" # This will be used in case no map.png is found the map's directory.
+fallback-map-images: ""
 
 # Example: https://raw.githubusercontent.com/TBG1000/MapImages/main/map_image_not_found.png
 map-image-not-found: "" # Image URL to display in the embed's thumbnail if no image is found.
 
 # Message to send  at the end of the match if an embed is created successfully.
 end-match: "&6Stats: &bRevisa el canal #partidas en &1&nDiscord."
-ip: "" # IP of the server to display when !ip command is used.
+ip: "" # IP of the server to display when =ip command is used.
 
 maps:
   allow: # List of maps for which embeds will be created. If empty, all maps will be used.
