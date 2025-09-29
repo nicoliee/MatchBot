@@ -8,6 +8,7 @@ import me.tbg.match.bot.configs.DiscordBot;
 import me.tbg.match.bot.configs.MessagesConfig;
 import me.tbg.match.bot.stats.Stats;
 import net.dv8tion.jda.api.EmbedBuilder;
+import tc.oc.pgm.api.map.Gamemode;
 import tc.oc.pgm.api.map.MapInfo;
 import tc.oc.pgm.api.match.Match;
 import tc.oc.pgm.api.party.Competitor;
@@ -32,8 +33,7 @@ public class FinishMatchEmbed {
         DiscordBot.parseDuration(match.getDuration()),
         true);
 
-    if (match.getMap().getGamemode().toString().toLowerCase().equals("scorebox")
-        && match.hasModule(ScoreMatchModule.class)) {
+    if (match.getMap().getGamemodes().contains(Gamemode.SCOREBOX)) {
       StringBuilder scores = new StringBuilder();
       for (Map.Entry<Competitor, Double> entry :
           match.getModule(ScoreMatchModule.class).getScores().entrySet()) {

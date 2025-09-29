@@ -12,6 +12,7 @@ import me.tbg.match.bot.configs.MessagesConfig;
 import me.tbg.match.bot.stats.GetStats;
 import me.tbg.match.bot.stats.Stats;
 import net.dv8tion.jda.api.EmbedBuilder;
+import tc.oc.pgm.api.map.Gamemode;
 import tc.oc.pgm.api.match.Match;
 import tc.oc.pgm.api.match.MatchPhase;
 import tc.oc.pgm.api.party.Competitor;
@@ -42,7 +43,7 @@ public class ListEmbed {
             DiscordBot.parseDuration(match.getDuration()),
             true);
         // Puntuación de los equipos
-        if (match.getMap().getGamemode().toString().toLowerCase().equals("scorebox")) {
+        if (match.getMap().getGamemodes().contains(Gamemode.SCOREBOX)) {
           addPoints(embed, match);
         } else {
           embed.addField("_ _", "_ _", true);
@@ -68,7 +69,7 @@ public class ListEmbed {
             "⏱️ " + MessagesConfig.message("embeds.list.running.duration"),
             DiscordBot.parseDuration(match.getDuration()),
             true);
-        if (match.getMap().getGamemode().toString().toLowerCase().equals("scorebox")) {
+        if (match.getMap().getGamemodes().contains(Gamemode.SCOREBOX)) {
           addPoints(embed, match);
         } else {
           embed.addField("_ _", "_ _", true);
