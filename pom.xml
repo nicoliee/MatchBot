@@ -2,179 +2,150 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-  
-  <modelVersion>4.0.0</modelVersion>
+    <modelVersion>4.0.0</modelVersion>
 
-  <!-- Identificación del paquete -->
-  <groupId>com.github.nicoliee</groupId>
-  <artifactId>MatchBot</artifactId>
-  <version>2.0.1</version>
-  <packaging>jar</packaging>
+    <!-- Usa el prefijo com.github.<usuario> -->
+    <groupId>com.github.nicoliee</groupId>
+    <artifactId>MatchBot</artifactId>
+    <version>2.0.2</version>
+    <packaging>jar</packaging>
 
-  <name>MatchBot</name>
-  <description>A Minecraft to Discord Java plugin</description>
+    <name>MatchBot</name>
+    <description>A Minecraft to Discord Java plugin</description>
 
-  <!-- Distribución (donde Maven publicará el paquete) -->
-  <distributionManagement>
-    <repository>
-      <id>github</id>
-      <name>GitHub Packages</name>
-      <url>https://maven.pkg.github.com/nicoliee/MatchBot</url>
-    </repository>
-  </distributionManagement>
+    <!-- 🔹 Distribución para GitHub Packages -->
+    <distributionManagement>
+        <repository>
+            <id>github</id>
+            <name>GitHub Packages</name>
+            <!-- Asegúrate de que el nombre del repo coincida EXACTAMENTE -->
+            <url>https://maven.pkg.github.com/nicoliee/MatchBot</url>
+        </repository>
+    </distributionManagement>
 
-  <!-- Repositorios para dependencias -->
-  <repositories>
-    <repository>
-      <id>pgm-repo</id>
-      <url>https://repo.pgm.fyi/snapshots</url>
-    </repository>
-    <repository>
-      <id>sonatype-snapshots</id>
-      <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-    </repository>
-  </repositories>
+    <!-- 🔹 Repositorios externos -->
+    <repositories>
+        <repository>
+            <id>pgm-repo</id>
+            <url>https://repo.pgm.fyi/snapshots</url>
+        </repository>
+        <repository>
+            <id>snapshots-repo</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+        </repository>
+    </repositories>
 
-  <!-- Dependencias -->
-  <dependencies>
-    <dependency>
-      <groupId>app.ashcon</groupId>
-      <artifactId>sportpaper</artifactId>
-      <version>1.8.8-R0.1-SNAPSHOT</version>
-      <scope>provided</scope>
-    </dependency>
+    <!-- 🔹 Dependencias -->
+    <dependencies>
+        <dependency>
+            <groupId>app.ashcon</groupId>
+            <artifactId>sportpaper</artifactId>
+            <version>1.8.8-R0.1-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
 
-    <dependency>
-      <groupId>tc.oc.pgm</groupId>
-      <artifactId>core</artifactId>
-      <version>0.16-SNAPSHOT</version>
-      <scope>provided</scope>
-    </dependency>
+        <dependency>
+            <groupId>tc.oc.pgm</groupId>
+            <artifactId>core</artifactId>
+            <version>0.16-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
 
-    <dependency>
-      <groupId>net.dv8tion</groupId>
-      <artifactId>JDA</artifactId>
-      <version>5.6.1</version>
-    </dependency>
+        <dependency>
+            <groupId>net.dv8tion</groupId>
+            <artifactId>JDA</artifactId>
+            <version>5.6.1</version>
+        </dependency>
 
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-      <version>2.0.9</version>
-    </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>2.0.9</version>
+        </dependency>
 
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-simple</artifactId>
-      <version>2.0.9</version>
-    </dependency>
-  </dependencies>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>2.0.9</version>
+        </dependency>
+    </dependencies>
 
-  <!-- Configuración de compilación -->
-  <build>
-    <finalName>MatchBot</finalName>
+    <!-- 🔹 Configuración de build -->
+    <build>
+        <finalName>MatchBot</finalName>
+        <resources>
+            <resource>
+                <directory>${basedir}/src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
 
-    <resources>
-      <resource>
-        <directory>src/main/resources</directory>
-        <filtering>true</filtering>
-      </resource>
-    </resources>
+        <plugins>
+            <!-- Compilación -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
+                <configuration>
+                    <release>21</release>
+                    <compilerArgs>
+                        <arg>-parameters</arg>
+                    </compilerArgs>
+                </configuration>
+            </plugin>
 
-    <plugins>
-      <!-- Compilador Java -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.11.0</version>
-        <configuration>
-          <release>21</release>
-          <compilerArgs>
-            <arg>-parameters</arg>
-          </compilerArgs>
-        </configuration>
-      </plugin>
+            <!-- Empaquetado con shade -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.5.3</version>
+                <configuration>
+                    <createDependencyReducedPom>false</createDependencyReducedPom>
+                    <minimizeJar>true</minimizeJar>
+                    <filters>
+                        <filter>
+                            <artifact>*:*</artifact>
+                            <excludes>
+                                <exclude>META-INF/*.SF</exclude>
+                                <exclude>META-INF/*.DSA</exclude>
+                                <exclude>META-INF/*.RSA</exclude>
+                            </excludes>
+                        </filter>
+                    </filters>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
 
-      <!-- Empaquetado con dependencias -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-shade-plugin</artifactId>
-        <version>3.5.3</version>
-        <configuration>
-          <createDependencyReducedPom>false</createDependencyReducedPom>
-          <minimizeJar>true</minimizeJar>
-          <artifactSet>
-            <includes>
-              <include>*:*</include>
-            </includes>
-          </artifactSet>
-          <filters>
-            <filter>
-              <artifact>*:*</artifact>
-              <excludes>
-                <exclude>META-INF/*.SF</exclude>
-                <exclude>META-INF/*.DSA</exclude>
-                <exclude>META-INF/*.RSA</exclude>
-              </excludes>
-            </filter>
-          </filters>
-          <relocations>
-            <relocation>
-              <pattern>org.apache.logging.log4j</pattern>
-              <shadedPattern>tc.oc.occ.bolt.lib.logger</shadedPattern>
-            </relocation>
-            <relocation>
-              <pattern>okhttp3</pattern>
-              <shadedPattern>tc.oc.occ.bolt.lib.okhttp3</shadedPattern>
-            </relocation>
-            <relocation>
-              <pattern>okio</pattern>
-              <shadedPattern>tc.oc.occ.bolt.lib.okio</shadedPattern>
-            </relocation>
-            <relocation>
-              <pattern>com.fasterxml</pattern>
-              <shadedPattern>tc.oc.occ.bolt.lib.jackson</shadedPattern>
-            </relocation>
-            <relocation>
-              <pattern>org.slf4j</pattern>
-              <shadedPattern>tc.oc.occ.bolt.lib.slf4j</shadedPattern>
-            </relocation>
-          </relocations>
-        </configuration>
-        <executions>
-          <execution>
-            <phase>package</phase>
-            <goals>
-              <goal>shade</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
+            <!-- Formateo -->
+            <plugin>
+                <groupId>com.diffplug.spotless</groupId>
+                <artifactId>spotless-maven-plugin</artifactId>
+                <version>2.43.0</version>
+                <configuration>
+                    <java>
+                        <removeUnusedImports/>
+                        <palantirJavaFormat>
+                            <version>2.47.0</version>
+                            <style>GOOGLE</style>
+                            <formatJavadoc>true</formatJavadoc>
+                        </palantirJavaFormat>
+                    </java>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
-      <!-- Formateo automático del código -->
-      <plugin>
-        <groupId>com.diffplug.spotless</groupId>
-        <artifactId>spotless-maven-plugin</artifactId>
-        <version>2.43.0</version>
-        <configuration>
-          <java>
-            <removeUnusedImports/>
-            <palantirJavaFormat>
-              <version>2.47.0</version>
-              <style>GOOGLE</style>
-              <formatJavadoc>true</formatJavadoc>
-            </palantirJavaFormat>
-          </java>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
-
-  <!-- Propiedades globales -->
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.release>21</maven.compiler.release>
-    <skipTests>true</skipTests>
-  </properties>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.release>21</maven.compiler.release>
+        <skipTests>true</skipTests>
+    </properties>
 
 </project>
