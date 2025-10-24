@@ -19,7 +19,7 @@
             <id>github</id>
             <name>GitHub Packages</name>
             <!-- Asegúrate de que el nombre del repo coincida EXACTAMENTE -->
-            <url>https://maven.pkg.github.com/nicoliee/MatchBot</url>
+            <url>https://maven.pkg.github.com/nicoliee/matchbot</url>
         </repository>
     </distributionManagement>
 
