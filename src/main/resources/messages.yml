@@ -9,6 +9,7 @@ embeds:
     title: "Partida iniciada"
     description: "Iniciada el <timestamp>" 
     map: "Mapa"
+    players: "Jugadores"
   finish:
     title: "Partida finalizada"
     description: "Terminada el <timestamp>"

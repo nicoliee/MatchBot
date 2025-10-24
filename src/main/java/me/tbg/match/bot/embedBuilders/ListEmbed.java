@@ -17,6 +17,7 @@ import tc.oc.pgm.api.match.Match;
 import tc.oc.pgm.api.match.MatchPhase;
 import tc.oc.pgm.api.party.Competitor;
 import tc.oc.pgm.api.player.MatchPlayer;
+import tc.oc.pgm.ffa.FreeForAllMatchModule;
 import tc.oc.pgm.score.ScoreMatchModule;
 import tc.oc.pgm.teams.Team;
 import tc.oc.pgm.teams.TeamMatchModule;
@@ -35,7 +36,7 @@ public class ListEmbed {
             MessagesConfig.message("author.name"), null, MessagesConfig.message("author.icon_url"));
     switch (currentPhase) {
       case FINISHED:
-        embed.setTitle("🏁 " + MessagesConfig.message("embeds.list.finished.title"));
+        embed.setTitle(MessagesConfig.message("embeds.list.finished.title"));
         embed.setDescription(MessagesConfig.message("embeds.list.finished.description")
             .replace("<timestamp>", "<t:" + Instant.now().getEpochSecond() + ":f>"));
         embed.addField(
@@ -51,7 +52,7 @@ public class ListEmbed {
         embed.setColor(Color.RED);
         break;
       case IDLE:
-        embed.setTitle("⏸️ " + MessagesConfig.message("embeds.list.idle.title"));
+        embed.setTitle(MessagesConfig.message("embeds.list.idle.title"));
         embed.setDescription(MessagesConfig.message("embeds.list.idle.description"));
         if (match.getPlayers().size() > 0) {
           embed.addField("_ _", "_ _", true);
@@ -60,7 +61,7 @@ public class ListEmbed {
         embed.setColor(Color.GRAY);
         break;
       case RUNNING:
-        embed.setTitle("🏃 " + MessagesConfig.message("embeds.list.running.title"));
+        embed.setTitle(MessagesConfig.message("embeds.list.running.title"));
         embed.setDescription(MessagesConfig.message("embeds.list.running.description")
             .replace(
                 "<timestamp>",
@@ -77,7 +78,7 @@ public class ListEmbed {
         embed.setColor(Color.GREEN);
         break;
       case STARTING:
-        embed.setTitle("⏱️ " + MessagesConfig.message("embeds.list.starting.title"));
+        embed.setTitle(MessagesConfig.message("embeds.list.starting.title"));
         embed.setDescription(MessagesConfig.message("embeds.list.starting.description")
             .replace("<timestamp>", "<t:" + Instant.now().getEpochSecond() + ":f>"));
         embed.setColor(Color.YELLOW);
@@ -87,8 +88,7 @@ public class ListEmbed {
       default:
         break;
     }
-    boolean stats = match.getPhase() == MatchPhase.FINISHED;
-    addPlayersField(embed, match, stats);
+    addPlayersField(embed, match, match.isFinished());
     return embed;
   }
 
@@ -112,28 +112,53 @@ public class ListEmbed {
 
   private static void addPlayersField(EmbedBuilder embed, Match match, boolean stats) {
     int playerCount = match.getPlayers().size();
+    TeamMatchModule teamModule = match.getModule(TeamMatchModule.class);
+    FreeForAllMatchModule ffaModule = match.getModule(FreeForAllMatchModule.class);
     if (playerCount > 0) {
       embed.setFooter("👥 " + MessagesConfig.message("embeds.list.players") + ": " + playerCount);
       if (stats) {
-        Map<String, List<Stats>> matchStats = GetStats.getPlayerStatsByTeams(match);
+        Map<String, List<Stats>> matchStats;
+        if (teamModule != null) {
+          matchStats = GetStats.getPlayerStatsByTeams(match);
+        } else {
+          matchStats = GetStats.getPlayerStats(match);
+        }
         for (Map.Entry<String, List<Stats>> entry : matchStats.entrySet()) {
           String teamName = entry.getKey();
           List<Stats> statsList = entry.getValue();
           if (!teamName.equalsIgnoreCase("observers")) {
-            FinishMatchEmbed.addTeamStatsFields(embed, "", teamName, statsList);
+            String displayName = teamName;
+            if (teamName.equalsIgnoreCase("winners")) {
+              displayName = MessagesConfig.message("embeds.finish.winner");
+            } else if (teamName.equalsIgnoreCase("losers")) {
+              displayName = MessagesConfig.message("embeds.finish.loser");
+            }
+            FinishMatchEmbed.addTeamStatsFields(embed, "", displayName, statsList);
           }
         }
       } else {
-        List<Team> teams =
-            new ArrayList<>(match.needModule(TeamMatchModule.class).getTeams());
-        for (Team team : teams) {
-          List<String> playerNames = team.getPlayers().stream()
-              .map(MatchPlayer::getNameLegacy)
-              .collect(Collectors.toList());
+        if (teamModule != null) {
+          List<Team> teams = new ArrayList<>(teamModule.getTeams());
+          for (Team team : teams) {
+            List<String> playerNames = team.getPlayers().stream()
+                .map(MatchPlayer::getNameLegacy)
+                .collect(Collectors.toList());
+
+            if (!playerNames.isEmpty()) {
+              embed.addField(
+                  team.getDefaultName() + " [👥: " + team.getSize() + "]",
+                  String.join("\n", playerNames),
+                  true);
+            }
+          }
+        } else if (ffaModule != null) {
+          List<MatchPlayer> participants = new ArrayList<>(match.getParticipants());
+          List<String> playerNames =
+              participants.stream().map(MatchPlayer::getNameLegacy).collect(Collectors.toList());
 
           if (!playerNames.isEmpty()) {
             embed.addField(
-                team.getDefaultName() + " [👥: " + team.getSize() + "]",
+                MessagesConfig.message("embeds.list.players") + " [👥: " + playerNames.size() + "]",
                 String.join("\n", playerNames),
                 true);
           }

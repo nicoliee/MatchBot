@@ -13,7 +13,6 @@ public class BotConfig {
   public static List<String> maps;
   public static List<String> blacklistMaps;
   public static String messageEndMatch;
-  public static String ip;
 
   public static void load(Configuration config) {
     enabled = config.getBoolean("enabled");
@@ -25,7 +24,6 @@ public class BotConfig {
     maps = config.getStringList("maps.allow");
     blacklistMaps = config.getStringList("maps.blacklist");
     messageEndMatch = config.getString("end-match");
-    ip = config.getString("ip");
   }
 
   public static boolean isEnabled() {
@@ -62,10 +60,6 @@ public class BotConfig {
 
   public static String getMessageEndMatch() {
     return messageEndMatch;
-  }
-
-  public static String getIp() {
-    return ip;
   }
 
   public static void addBlacklist(List<String> newBlacklist) {

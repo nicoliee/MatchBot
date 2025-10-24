@@ -22,7 +22,6 @@ public class MatchBot extends JavaPlugin {
     this.reloadConfig();
     BotConfig.load(getConfig());
     MessagesConfig.setup();
-    // Iniciar el bot de Discord usando el método estático seguro.
     DiscordBot.enable();
 
     this.registerListeners();
@@ -30,11 +29,9 @@ public class MatchBot extends JavaPlugin {
 
   @Override
   public void onDisable() {
-    // Apagar Discord limpiamente.
     DiscordBot.disable();
   }
 
-  // Método auxiliar opcional para recargar el bot sin reiniciar el servidor.
   public void reloadBot() {
     this.reloadConfig();
     BotConfig.load(getConfig());

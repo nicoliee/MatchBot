@@ -29,7 +29,10 @@ public class GetStats {
 
     for (MatchPlayer player : allPlayers) {
       PlayerStats playerStats = statsModule.getPlayerStat(player);
-      int totalPoints = (int) scoreMatchModule.getContribution(player.getId());
+      int totalPoints = 0;
+      if (scoreMatchModule != null) {
+        totalPoints = (int) scoreMatchModule.getContribution(player.getId());
+      }
       boolean isWinner = match.getWinners().contains(player.getCompetitor());
       boolean isDisconnected =
           MatchBot.getInstance().getDisconnectedPlayers().containsKey(player.getNameLegacy());
@@ -74,6 +77,7 @@ public class GetStats {
   public static Map<String, List<Stats>> getPlayerStatsByTeams(Match match) {
     Map<String, List<Stats>> teamStatsMap = new HashMap<>();
     for (Party party : match.getParties()) {
+      if (party.isObserving()) continue;
       for (MatchPlayer player : party.getPlayers()) {
         // Obtener estadísticas del jugador
         StatsMatchModule statsModule = match.getModule(StatsMatchModule.class);

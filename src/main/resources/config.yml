@@ -13,7 +13,6 @@ map-image-not-found: "" # Image URL to display in the embed's thumbnail if no im
 
 # Message to send  at the end of the match if an embed is created successfully.
 end-match: "&6Stats: &bRevisa el canal #partidas en &1&nDiscord."
-ip: "" # IP of the server to display when !ip command is used.
 
 maps:
   allow: # List of maps for which embeds will be created. If empty, all maps will be used.

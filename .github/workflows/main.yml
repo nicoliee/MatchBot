@@ -1,12 +1,16 @@
-name: Publish compiled jar to GitHub releases
+name: Publish MatchBot to GitHub Packages
 
 on:
   push:
     branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
 
     steps:
       - name: Checkout code
@@ -17,39 +21,13 @@ jobs:
         with:
           java-version: 21
           distribution: temurin
+          server-id: github
+          settings-path: ${{ github.workspace }}
 
       - name: Build jar
-        run: mvn package
+        run: mvn -B package --file pom.xml
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: MatchBot-1.0.0-SNAPSHOT.jar
-          path: target/MatchBot-1.0.0-SNAPSHOT.jar
-
-      - name: Move generated jar file
-        run: mv target/MatchBot-1.0.0-SNAPSHOT.jar MatchBot-1.0.0-SNAPSHOT.jar
-
-      - name: Create Release
-        id: create_release
-        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-        uses: actions/create-release@v1
+      - name: Publish to GitHub Packages
+        run: mvn deploy -s $GITHUB_WORKSPACE/settings.xml
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: MatchBot-${{ github.sha }}
-          release_name: Release MatchBot-${{ github.sha }}
-          draft: false
-          prerelease: false
-
-      - name: Upload Release Asset
-        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-        uses: softprops/action-gh-release@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: MatchBot-${{ github.sha }}
-          draft: false
-          prerelease: false
-          files: ./MatchBot-1.0.0-SNAPSHOT.jar
-          make_latest: true
+          GITHUB_TOKEN: ${{ github.token }}
