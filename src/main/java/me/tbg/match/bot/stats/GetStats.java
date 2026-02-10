@@ -45,21 +45,7 @@ public class GetStats {
               .getParty()
           : player.getParty();
 
-      Stats stats = new Stats(
-          displayName,
-          playerStats != null ? playerStats.getKills() : 0,
-          playerStats != null ? playerStats.getDeaths() : 0,
-          playerStats != null ? playerStats.getAssists() : 0,
-          playerStats != null
-              ? ((playerStats.getDamageDone() + playerStats.getBowDamage()) / 2)
-              : 0,
-          playerStats != null
-              ? ((playerStats.getDamageTaken() + playerStats.getBowDamageTaken()) / 2)
-              : 0,
-          playerStats != null ? playerStats.getArrowAccuracy() : 0,
-          totalPoints,
-          party);
-
+      Stats stats = createStats(playerStats, displayName, totalPoints, party);
       if (isWinner) {
         winnerStats.add(stats);
       } else {
@@ -76,38 +62,99 @@ public class GetStats {
 
   public static Map<String, List<Stats>> getPlayerStatsByTeams(Match match) {
     Map<String, List<Stats>> teamStatsMap = new HashMap<>();
-    for (Party party : match.getParties()) {
-      if (party.isObserving()) continue;
-      for (MatchPlayer player : party.getPlayers()) {
-        // Obtener estadísticas del jugador
-        StatsMatchModule statsModule = match.getModule(StatsMatchModule.class);
-        PlayerStats playerStats = statsModule.getPlayerStat(player);
-        int totalPoints = 0;
-        if (match.getModule(ScoreMatchModule.class) != null) {
-          totalPoints =
-              (int) match.getModule(ScoreMatchModule.class).getContribution(player.getId());
-        }
+    StatsMatchModule statsModule = match.getModule(StatsMatchModule.class);
+    ScoreMatchModule scoreMatchModule = match.getModule(ScoreMatchModule.class);
 
-        Stats stats = new Stats(
-            player.getNameLegacy(),
-            playerStats != null ? playerStats.getKills() : 0,
-            playerStats != null ? playerStats.getDeaths() : 0,
-            playerStats != null ? playerStats.getAssists() : 0,
-            playerStats != null
-                ? ((playerStats.getDamageDone() + playerStats.getBowDamage()) / 2)
-                : 0,
-            playerStats != null
-                ? ((playerStats.getDamageTaken() + playerStats.getBowDamageTaken()) / 2)
-                : 0,
-            playerStats != null ? playerStats.getArrowAccuracy() : 0,
-            totalPoints,
-            party);
+    java.util.Set<MatchPlayer> allPlayers = new java.util.HashSet<>();
+    allPlayers.addAll(match.getParticipants());
 
-        teamStatsMap
-            .computeIfAbsent(party.getDefaultName(), k -> new ArrayList<>())
-            .add(stats);
+    for (MatchPlayer player : allPlayers) {
+      String displayName = player.getNameLegacy();
+      Party party = player.getParty();
+
+      if (party == null) {
+        continue;
       }
+
+      PlayerStats playerStats = statsModule != null ? statsModule.getPlayerStat(player) : null;
+      int totalPoints =
+          scoreMatchModule != null ? (int) scoreMatchModule.getContribution(player.getId()) : 0;
+
+      Stats stats = createStats(playerStats, displayName, totalPoints, party);
+
+      teamStatsMap
+          .computeIfAbsent(party.getDefaultName(), k -> new ArrayList<>())
+          .add(stats);
     }
+
     return teamStatsMap;
+  }
+
+  public static Map<String, Stats> getPlayerStatsMap(Match match) {
+    Map<String, Stats> statsMap = new HashMap<>();
+    ScoreMatchModule scoreMatchModule = match.getModule(ScoreMatchModule.class);
+    StatsMatchModule statsModule = match.getModule(StatsMatchModule.class);
+
+    Set<MatchPlayer> allPlayers = new HashSet<>();
+    allPlayers.addAll(match.getParticipants());
+    for (MatchPlayer player : MatchBot.getInstance().getDisconnectedPlayers().values()) {
+      allPlayers.add(player);
+    }
+
+    for (MatchPlayer player : allPlayers) {
+      PlayerStats playerStats = statsModule.getPlayerStat(player);
+      int totalPoints = 0;
+      if (scoreMatchModule != null) {
+        totalPoints = (int) scoreMatchModule.getContribution(player.getId());
+      }
+
+      boolean isDisconnected =
+          MatchBot.getInstance().getDisconnectedPlayers().containsKey(player.getNameLegacy());
+      String displayName =
+          isDisconnected ? "~~" + player.getNameLegacy() + "~~" : player.getNameLegacy();
+      Party party = isDisconnected
+          ? MatchBot.getInstance()
+              .getDisconnectedPlayers()
+              .get(player.getNameLegacy())
+              .getParty()
+          : player.getParty();
+
+      Stats stats = createStats(playerStats, displayName, totalPoints, party);
+      statsMap.put(player.getNameLegacy(), stats);
+    }
+
+    return statsMap;
+  }
+
+  private static Stats createStats(
+      PlayerStats playerStats, String displayName, int totalPoints, Party party) {
+    int kills = playerStats != null ? playerStats.getKills() : 0;
+    int deaths = playerStats != null ? playerStats.getDeaths() : 0;
+    int assists = playerStats != null ? playerStats.getAssists() : 0;
+    int maxKillstreak = playerStats != null ? playerStats.getMaxKillstreak() : 0;
+    double damageDone = playerStats != null ? (playerStats.getDamageDone() / 2) : 0;
+    double bowDamage = playerStats != null ? (playerStats.getBowDamage() / 2) : 0;
+    double damageTaken = playerStats != null ? (playerStats.getDamageTaken() / 2) : 0;
+    double bowDamageTaken = playerStats != null ? (playerStats.getBowDamageTaken() / 2) : 0;
+    int shotsTaken = playerStats != null ? playerStats.getShotsTaken() : 0;
+    int shotsHit = playerStats != null ? playerStats.getShotsHit() : 0;
+    double bowAccuracy = playerStats != null ? playerStats.getArrowAccuracy() : 0;
+
+    Stats stats = new Stats(
+        displayName,
+        kills,
+        deaths,
+        assists,
+        maxKillstreak,
+        damageDone,
+        bowDamage,
+        damageTaken,
+        bowDamageTaken,
+        shotsTaken,
+        shotsHit,
+        bowAccuracy,
+        totalPoints,
+        party);
+    return stats;
   }
 }

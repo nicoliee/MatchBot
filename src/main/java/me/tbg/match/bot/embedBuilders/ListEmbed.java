@@ -23,11 +23,12 @@ import tc.oc.pgm.teams.Team;
 import tc.oc.pgm.teams.TeamMatchModule;
 
 public class ListEmbed {
-  public static EmbedBuilder create(Match match) {
+  public static EmbedBuilder create(Match match, boolean statsRequested) {
     if (match == null) {
       return null;
     }
     MatchPhase currentPhase = match.getPhase();
+    boolean showStats = statsRequested && (match.isRunning() || match.isFinished());
     EmbedBuilder embed = new EmbedBuilder()
         .setTimestamp(Instant.now())
         .addField(
@@ -43,7 +44,7 @@ public class ListEmbed {
             "⏱️ " + MessagesConfig.message("embeds.list.finished.duration"),
             DiscordBot.parseDuration(match.getDuration()),
             true);
-        // Puntuación de los equipos
+        // Puntuación de los equipos (SOLO PARA SCOREBOX)
         if (match.getMap().getGamemodes().contains(Gamemode.SCOREBOX)) {
           addPoints(embed, match);
         } else {
@@ -88,7 +89,7 @@ public class ListEmbed {
       default:
         break;
     }
-    addPlayersField(embed, match, match.isFinished());
+    addPlayersField(embed, match, showStats);
     return embed;
   }
 
@@ -112,67 +113,98 @@ public class ListEmbed {
 
   private static void addPlayersField(EmbedBuilder embed, Match match, boolean stats) {
     int playerCount = match.getPlayers().size();
+    if (playerCount == 0) {
+      return;
+    }
+
+    embed.setFooter("👥 " + MessagesConfig.message("embeds.list.players") + ": " + playerCount);
+
     TeamMatchModule teamModule = match.getModule(TeamMatchModule.class);
     FreeForAllMatchModule ffaModule = match.getModule(FreeForAllMatchModule.class);
-    if (playerCount > 0) {
-      embed.setFooter("👥 " + MessagesConfig.message("embeds.list.players") + ": " + playerCount);
-      if (stats) {
-        Map<String, List<Stats>> matchStats;
-        if (teamModule != null) {
-          matchStats = GetStats.getPlayerStatsByTeams(match);
-        } else {
-          matchStats = GetStats.getPlayerStats(match);
-        }
-        for (Map.Entry<String, List<Stats>> entry : matchStats.entrySet()) {
-          String teamName = entry.getKey();
-          List<Stats> statsList = entry.getValue();
-          if (!teamName.equalsIgnoreCase("observers")) {
-            String displayName = teamName;
-            if (teamName.equalsIgnoreCase("winners")) {
-              displayName = MessagesConfig.message("embeds.finish.winner");
-            } else if (teamName.equalsIgnoreCase("losers")) {
-              displayName = MessagesConfig.message("embeds.finish.loser");
-            }
-            FinishMatchEmbed.addTeamStatsFields(embed, "", displayName, statsList);
-          }
-        }
-      } else {
-        if (teamModule != null) {
-          List<Team> teams = new ArrayList<>(teamModule.getTeams());
-          for (Team team : teams) {
-            List<String> playerNames = team.getPlayers().stream()
-                .map(MatchPlayer::getNameLegacy)
-                .collect(Collectors.toList());
 
-            if (!playerNames.isEmpty()) {
-              embed.addField(
-                  team.getDefaultName() + " [👥: " + team.getSize() + "]",
-                  String.join("\n", playerNames),
-                  true);
-            }
-          }
-        } else if (ffaModule != null) {
-          List<MatchPlayer> participants = new ArrayList<>(match.getParticipants());
-          List<String> playerNames =
-              participants.stream().map(MatchPlayer::getNameLegacy).collect(Collectors.toList());
+    if (teamModule != null) {
+      addTeamPlayersField(embed, match, stats);
 
-          if (!playerNames.isEmpty()) {
-            embed.addField(
-                MessagesConfig.message("embeds.list.players") + " [👥: " + playerNames.size() + "]",
-                String.join("\n", playerNames),
-                true);
-          }
+    } else if (ffaModule != null) {
+      addFFAPlayersField(embed, match, stats);
+    }
+
+    addObserversField(embed, match);
+  }
+
+  private static void addTeamPlayersField(EmbedBuilder embed, Match match, boolean stats) {
+    TeamMatchModule teamModule = match.getModule(TeamMatchModule.class);
+
+    if (stats) {
+      Map<String, List<Stats>> matchStats = GetStats.getPlayerStatsByTeams(match);
+      for (Map.Entry<String, List<Stats>> entry : matchStats.entrySet()) {
+        String teamName = entry.getKey();
+        List<Stats> statsList = entry.getValue();
+        if (!teamName.equalsIgnoreCase("observers")) {
+          String displayName = getDisplayTeamName(teamName);
+          FinishMatchEmbed.addTeamStatsFields(embed, "", displayName, statsList);
         }
       }
-      Collection<MatchPlayer> players = match.getObservers();
-      List<String> playerNames =
-          players.stream().map(MatchPlayer::getNameLegacy).collect(Collectors.toList());
-      if (!playerNames.isEmpty()) {
-        embed.addField(
-            MessagesConfig.message("embeds.list.observers") + " [👥: " + playerNames.size() + "]",
-            String.join("\n", playerNames),
-            false);
+    } else {
+      List<Team> teams = new ArrayList<>(teamModule.getTeams());
+      for (Team team : teams) {
+        List<String> playerNames =
+            team.getPlayers().stream().map(MatchPlayer::getNameLegacy).collect(Collectors.toList());
+
+        if (!playerNames.isEmpty()) {
+          embed.addField(
+              team.getDefaultName() + " [👥: " + team.getSize() + "]",
+              String.join("\n", playerNames),
+              true);
+        }
       }
     }
+  }
+
+  private static void addFFAPlayersField(EmbedBuilder embed, Match match, boolean stats) {
+    if (stats) {
+      Map<String, List<Stats>> matchStats = GetStats.getPlayerStats(match);
+      for (Map.Entry<String, List<Stats>> entry : matchStats.entrySet()) {
+        String teamName = entry.getKey();
+        List<Stats> statsList = entry.getValue();
+        if (!teamName.equalsIgnoreCase("observers")) {
+          String displayName = getDisplayTeamName(teamName);
+          FinishMatchEmbed.addTeamStatsFields(embed, "", displayName, statsList);
+        }
+      }
+    } else {
+      List<MatchPlayer> participants = new ArrayList<>(match.getParticipants());
+      List<String> playerNames =
+          participants.stream().map(MatchPlayer::getNameLegacy).collect(Collectors.toList());
+
+      if (!playerNames.isEmpty()) {
+        embed.addField(
+            MessagesConfig.message("embeds.list.players") + " [👥: " + playerNames.size() + "]",
+            String.join("\n", playerNames),
+            true);
+      }
+    }
+  }
+
+  private static void addObserversField(EmbedBuilder embed, Match match) {
+    Collection<MatchPlayer> observers = match.getObservers();
+    List<String> observerNames =
+        observers.stream().map(MatchPlayer::getNameLegacy).collect(Collectors.toList());
+
+    if (!observerNames.isEmpty()) {
+      embed.addField(
+          MessagesConfig.message("embeds.list.observers") + " [👥: " + observerNames.size() + "]",
+          String.join("\n", observerNames),
+          false);
+    }
+  }
+
+  private static String getDisplayTeamName(String teamName) {
+    if (teamName.equalsIgnoreCase("winners")) {
+      return MessagesConfig.message("embeds.finish.winner");
+    } else if (teamName.equalsIgnoreCase("losers")) {
+      return MessagesConfig.message("embeds.finish.loser");
+    }
+    return teamName;
   }
 }

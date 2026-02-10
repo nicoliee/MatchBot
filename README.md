@@ -20,10 +20,6 @@ The `=list` command is available to all Discord users and provides real-time inf
 ### Rewritten
 MatchBot is now built with [JDA](https://github.com/discord-jda/JDA), as Javacord is no longer maintained.
 
-### ⚠️ Thumbnails
-In the original plugin, if your map contained a `map.png`, it was automatically used as the thumbnail.  
-Here, thumbnails rely on the configured fallback images and the not-found image from `config.yml` instead.
-
 ## Description
 
 MatchBot will listen to [`MatchStartEvent`](https://github.com/PGMDev/PGM/blob/dev/core/src/main/java/tc/oc/pgm/api/match/event/MatchStartEvent.java) and [`MatchFinishEvent`](https://github.com/PGMDev/PGM/blob/dev/core/src/main/java/tc/oc/pgm/api/match/event/MatchFinishEvent.java) to populate a Discord [embed](https://javacord.org/wiki/basic-tutorials/embeds.html#creating-an-embed) with information about a started or finished match.

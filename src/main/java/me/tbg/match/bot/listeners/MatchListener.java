@@ -41,24 +41,27 @@ public class MatchListener implements Listener {
   public void onMatchStart(MatchStartEvent event) {
     Match match = event.getMatch();
     DiscordBot.storeMatchStartData(Long.parseLong(match.getId()), Instant.now().getEpochSecond());
-    if (embed(event.getMatch())) {
+    if (!DiscordBot.isBlacklistCurrentMap() && embed(event.getMatch())) {
       EmbedBuilder matchStartEmbed = StartMatchEmbed.create(match);
 
-      DiscordBot.setEmbedThumbnail(match.getMap(), matchStartEmbed);
-      DiscordBot.sendMatchEmbed(matchStartEmbed, match, BotConfig.getMatchChannel(), null);
+      DiscordBot.sendMatchEmbed(
+          matchStartEmbed,
+          BotConfig.getMatchChannel(),
+          null,
+          DiscordBot.setEmbedThumbnail(match.getMap(), matchStartEmbed));
     }
   }
 
   @EventHandler
   public void onMatchFinish(MatchFinishEvent event) {
-    if (embed(event.getMatch())) {
+    if (!DiscordBot.isBlacklistCurrentMap() && embed(event.getMatch())) {
       Match match = event.getMatch();
       Map<String, List<Stats>> playerStatsMap = GetStats.getPlayerStats(match);
       List<Stats> winnerStats = playerStatsMap.get("winners");
       List<Stats> loserStats = playerStatsMap.get("losers");
       MapInfo map = match.getMap();
       EmbedBuilder matchFinishEmbed = FinishMatchEmbed.create(match, map, winnerStats, loserStats);
-      DiscordBot.sendMatchEmbed(matchFinishEmbed, match, BotConfig.getMatchChannel(), null);
+      DiscordBot.sendMatchEmbed(matchFinishEmbed, BotConfig.getMatchChannel(), null, null);
     }
     MatchBot.getInstance().removeDisconnectedPlayers();
   }
@@ -85,6 +88,7 @@ public class MatchListener implements Listener {
 
   @EventHandler
   public void onMatchLoad(MatchLoadEvent event) {
+    DiscordBot.setBlacklistCurrentMap(false);
     Match match = event.getMatch();
     JDA jda = DiscordBot.getJDA();
     try {
@@ -94,8 +98,21 @@ public class MatchListener implements Listener {
   }
 
   private static boolean embed(Match match) {
-    return (BotConfig.getMaps().contains(match.getMap().getName())
-        || BotConfig.getMaps().isEmpty()
-            && !BotConfig.getBlacklistMaps().contains(match.getMap().getName()));
+    String mapName = match.getMap().getName();
+    List<String> allowedMaps = BotConfig.getMaps();
+    List<String> blacklistedMaps = BotConfig.getBlacklistMaps();
+
+    if (blacklistedMaps != null
+        && !blacklistedMaps.isEmpty()
+        && blacklistedMaps.contains(mapName)) {
+      return false;
+    }
+
+    if (allowedMaps == null || allowedMaps.isEmpty()) {
+      return true;
+    }
+
+    boolean inAllowList = allowedMaps.contains(mapName);
+    return inAllowList;
   }
 }

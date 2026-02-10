@@ -24,7 +24,10 @@ public class StartMatchEmbed {
         .setDescription(MessagesConfig.message("embeds.start.description")
             .replace(
                 "<timestamp>",
-                "<t:" + DiscordBot.getMatchStartTimestamp(Long.parseLong(match.getId())) + ":f>"))
+                "<t:" + DiscordBot.getMatchStartTimestamp(Long.parseLong(match.getId()))
+                    + ":f>, <t:"
+                    + DiscordBot.getMatchStartTimestamp(Long.parseLong(match.getId()))
+                    + ":R>"))
         .addField(
             " ",
             "**🗺️ " + MessagesConfig.message("embeds.start.map") + "-** "

@@ -24,7 +24,10 @@ public class FinishMatchEmbed {
         .setAuthor(
             MessagesConfig.message("author.name"), null, MessagesConfig.message("author.icon_url"))
         .setDescription(MessagesConfig.message("embeds.finish.description")
-            .replace("<timestamp>", "<t:" + Instant.now().getEpochSecond() + ":f>"));
+            .replace(
+                "<timestamp>",
+                "<t:" + Instant.now().getEpochSecond() + ":f>, <t:"
+                    + Instant.now().getEpochSecond() + ":R>"));
 
     embed.addField("🗺️ " + MessagesConfig.message("embeds.finish.map"), map.getName(), true);
 
@@ -68,27 +71,7 @@ public class FinishMatchEmbed {
     StringBuilder chunk = new StringBuilder();
     boolean isFirstField = true;
     for (Stats stats : statsList) {
-      StringBuilder entry = new StringBuilder("➡️ **" + stats.getUsername() + ":**"
-          + " `" + MessagesConfig.message("stats.kills") + ":` " + stats.getKills()
-          + " | `" + MessagesConfig.message("stats.deaths") + ":` " + stats.getDeaths()
-          + " | `" + MessagesConfig.message("stats.assists") + ":` " + stats.getAssists()
-          + " | `" + MessagesConfig.message("stats.damageDone") + ":` "
-          + String.format("%.1f", stats.getDamageDone()) + " ♥"
-          + " | `" + MessagesConfig.message("stats.damageTaken") + ":` "
-          + String.format("%.1f", stats.getDamageTaken()) + " ♥");
-
-      if (Double.isNaN(stats.getBowAccuracy())) {
-        entry.append(" | `" + MessagesConfig.message("stats.bowAccuracy") + ":` NaN");
-      } else {
-        entry.append(" | `" + MessagesConfig.message("stats.bowAccuracy") + ":` "
-            + String.format("%.1f", stats.getBowAccuracy()) + "%");
-      }
-
-      if (stats.getPoints() != 0) {
-        entry.append(" | `" + MessagesConfig.message("stats.points") + ":` " + stats.getPoints());
-      }
-
-      entry.append("\n\n");
+      String entry = stats.toDiscordFormat();
 
       if (chunk.length() + entry.length() > MAX_FIELD_LENGTH) {
         embed.addField(
