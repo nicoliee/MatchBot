@@ -1,22 +1,46 @@
 package me.tbg.match.bot.stats;
 
+import java.time.Duration;
 import me.tbg.match.bot.configs.MessagesConfig;
 import tc.oc.pgm.api.party.Party;
 
 public class Stats {
   private String username;
+
+  // K/D
   private int kills;
   private int deaths;
   private int assists;
-  private int killstreak;
-  private double damageDone;
-  private double damageDoneBow;
-  private double damageTaken;
-  private double damageTakenBow;
+  private int killstreak; // Current killstreak
+  private int killstreakMax; // The highest killstreak reached this match
+
+  // Bow
+  private int longestBowKill;
+  private double bowDamage;
+  private double bowDamageTaken;
   private int shotsTaken;
   private int shotsHit;
-  private double bowAccuracy;
+
+  // Damage
+  private double damageDone;
+  private double damageTaken;
+
+  // Objectives
+  private int destroyablePiecesBroken;
+  private int monumentsDestroyed;
+
+  private int flagsCaptured;
+  private int flagPickups;
+
+  private int coresLeaked;
+
+  private int woolsCaptured;
+  private int woolsTouched;
+
+  private Duration longestFlagHold = Duration.ZERO;
+
   private int points;
+
   private Party party;
 
   public Stats(
@@ -25,13 +49,22 @@ public class Stats {
       int deaths,
       int assists,
       int killstreak,
-      double damageDone,
-      double damageDoneBow,
-      double damageTaken,
-      double damageTakenBow,
+      int killstreakMax,
+      int longestBowKill,
+      double bowDamage,
+      double bowDamageTaken,
       int shotsTaken,
       int shotsHit,
-      double bowAccuracy,
+      double damageDone,
+      double damageTaken,
+      int destroyablePiecesBroken,
+      int monumentsDestroyed,
+      int flagsCaptured,
+      int flagPickups,
+      int coresLeaked,
+      int woolsCaptured,
+      int woolsTouched,
+      Duration longestFlagHold,
       int points,
       Party party) {
     this.username = username;
@@ -39,13 +72,22 @@ public class Stats {
     this.deaths = deaths;
     this.assists = assists;
     this.killstreak = killstreak;
-    this.damageDone = damageDone;
-    this.damageDoneBow = damageDoneBow;
-    this.damageTaken = damageTaken;
-    this.damageTakenBow = damageTakenBow;
+    this.killstreakMax = killstreakMax;
+    this.longestBowKill = longestBowKill;
+    this.bowDamage = bowDamage;
+    this.bowDamageTaken = bowDamageTaken;
     this.shotsTaken = shotsTaken;
     this.shotsHit = shotsHit;
-    this.bowAccuracy = bowAccuracy;
+    this.damageDone = damageDone;
+    this.damageTaken = damageTaken;
+    this.destroyablePiecesBroken = destroyablePiecesBroken;
+    this.monumentsDestroyed = monumentsDestroyed;
+    this.flagsCaptured = flagsCaptured;
+    this.flagPickups = flagPickups;
+    this.coresLeaked = coresLeaked;
+    this.woolsCaptured = woolsCaptured;
+    this.woolsTouched = woolsTouched;
+    this.longestFlagHold = longestFlagHold;
     this.points = points;
     this.party = party;
   }
@@ -70,20 +112,60 @@ public class Stats {
     return killstreak;
   }
 
-  public double getDamageDone() {
-    return damageDone;
+  public int getKillstreakMax() {
+    return killstreakMax;
   }
 
-  public double getDamageDoneBow() {
-    return damageDoneBow;
+  public int getLongestBowKill() {
+    return longestBowKill;
+  }
+
+  public double getBowDamage() {
+    return bowDamage;
+  }
+
+  public double getBowDamageTaken() {
+    return bowDamageTaken;
+  }
+
+  public double getDamageDone() {
+    return damageDone;
   }
 
   public double getDamageTaken() {
     return damageTaken;
   }
 
-  public double getDamageTakenBow() {
-    return damageTakenBow;
+  public int getDestroyablePiecesBroken() {
+    return destroyablePiecesBroken;
+  }
+
+  public int getMonumentsDestroyed() {
+    return monumentsDestroyed;
+  }
+
+  public int getFlagsCaptured() {
+    return flagsCaptured;
+  }
+
+  public int getFlagPickups() {
+    return flagPickups;
+  }
+
+  public int getCoresLeaked() {
+    return coresLeaked;
+  }
+
+  public int getWoolsCaptured() {
+    return woolsCaptured;
+  }
+
+  public int getWoolsTouched() {
+    return woolsTouched;
+  }
+
+  public Duration getLongestFlagHold() {
+    return longestFlagHold;
   }
 
   public int getShotsTaken() {
@@ -95,7 +177,10 @@ public class Stats {
   }
 
   public double getBowAccuracy() {
-    return bowAccuracy;
+    if (shotsTaken == 0) {
+      return 0.0;
+    }
+    return ((double) shotsHit / shotsTaken) * 100;
   }
 
   public int getPoints() {
@@ -127,28 +212,68 @@ public class Stats {
   }
 
   public String toDiscordFormat(String customUsername) {
-    StringBuilder entry = new StringBuilder("**" + customUsername + ":**"
+    StringBuilder entry = new StringBuilder("**" + customUsername.replace("_", "\\_") + ":**"
         + " `" + MessagesConfig.message("stats.kills") + ":` " + kills
         + ", `" + MessagesConfig.message("stats.deaths") + ":` " + deaths
         + ", `" + MessagesConfig.message("stats.kd") + ":` " + formatNumber(getKDRatio(), 2)
         + " | `" + MessagesConfig.message("stats.assists") + ":` "
         + assists
         + " | `" + MessagesConfig.message("stats.killstreak") + ":` "
-        + killstreak
+        + killstreakMax
         + " | `" + MessagesConfig.message("stats.damageDone") + " ("
         + MessagesConfig.message("stats.bow") + "):` "
-        + formatNumber(damageDone, 1) + " (" + formatNumber(damageDoneBow, 2) + ")"
+        + formatNumber(damageDone, 1) + " (" + formatNumber(bowDamage, 2) + ")"
         + ", `" + MessagesConfig.message("stats.damageTaken") + " ("
         + MessagesConfig.message("stats.bow") + "):` "
-        + formatNumber(damageTaken, 1) + " (" + formatNumber(damageTakenBow, 2) + ")");
+        + formatNumber(damageTaken, 1) + " (" + formatNumber(bowDamageTaken, 2) + ")");
     /*+ " | `" + MessagesConfig.message("stats.bowAccuracy") + ":` "
     + shotsHit + "/" + shotsTaken + " (" + formatNumber(bowAccuracy, 2) + "%)");*/
 
     if (points != 0) {
       entry.append(" | `" + MessagesConfig.message("stats.points") + ":` " + points);
     }
+
+    // Objectives
+    if (coresLeaked > 0) {
+      entry.append(" | `" + MessagesConfig.message("stats.coresLeaked") + ":` " + coresLeaked);
+    }
+    if (woolsCaptured > 0) {
+      entry.append(" | `" + MessagesConfig.message("stats.woolsCaptured") + ":` " + woolsCaptured);
+    }
+    if (woolsTouched > 0) {
+      entry.append(" | `" + MessagesConfig.message("stats.woolsTouched") + ":` " + woolsTouched);
+    }
+    if (flagsCaptured > 0) {
+      entry.append(" | `" + MessagesConfig.message("stats.flagsCaptured") + ":` " + flagsCaptured);
+    }
+    if (flagPickups > 0) {
+      entry.append(" | `" + MessagesConfig.message("stats.flagPickups") + ":` " + flagPickups);
+    }
+    if (destroyablePiecesBroken > 0) {
+      entry.append(" | `" + MessagesConfig.message("stats.destroyablePiecesBroken") + ":` "
+          + destroyablePiecesBroken);
+    }
+    if (monumentsDestroyed > 0) {
+      entry.append(
+          " | `" + MessagesConfig.message("stats.monumentsDestroyed") + ":` " + monumentsDestroyed);
+    }
+    if (longestFlagHold != null && !longestFlagHold.isZero()) {
+      long seconds = longestFlagHold.getSeconds();
+      entry.append(" | `" + MessagesConfig.message("stats.longestFlagHold") + ":` "
+          + formatDuration(seconds));
+    }
+
     entry.append("\n\n");
 
     return entry.toString();
+  }
+
+  private String formatDuration(long seconds) {
+    long minutes = seconds / 60;
+    long secs = seconds % 60;
+    if (minutes > 0) {
+      return minutes + "m " + secs + "s";
+    }
+    return secs + "s";
   }
 }

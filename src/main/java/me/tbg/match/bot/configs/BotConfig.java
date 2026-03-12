@@ -14,11 +14,12 @@ public class BotConfig {
   public static List<String> maps;
   public static List<String> blacklistMaps;
   public static String messageEndMatch;
+  public static String listCommand;
 
   public static void load(Configuration config) {
     enabled = config.getBoolean("enabled");
     ip = config.getBoolean("ip");
-    list = config.getBoolean("list");
+    list = config.getBoolean("list.enabled");
     token = config.getString("token");
     serverId = config.getString("server");
     matchChannel = config.getString("match-channel");
@@ -26,6 +27,8 @@ public class BotConfig {
     maps = config.getStringList("maps.allow");
     blacklistMaps = config.getStringList("maps.blacklist");
     messageEndMatch = config.getString("end-match");
+
+    listCommand = config.getString("list.command", "=list");
   }
 
   public static boolean isEnabled() {
@@ -70,5 +73,9 @@ public class BotConfig {
 
   public static void addBlacklist(List<String> newBlacklist) {
     blacklistMaps.addAll(newBlacklist);
+  }
+
+  public static String getListCommand() {
+    return listCommand;
   }
 }

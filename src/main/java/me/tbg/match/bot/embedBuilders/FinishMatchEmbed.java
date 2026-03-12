@@ -3,7 +3,6 @@ package me.tbg.match.bot.embedBuilders;
 import java.awt.Color;
 import java.time.Instant;
 import java.util.List;
-import java.util.Map;
 import me.tbg.match.bot.configs.DiscordBot;
 import me.tbg.match.bot.configs.MessagesConfig;
 import me.tbg.match.bot.stats.Stats;
@@ -15,6 +14,12 @@ import tc.oc.pgm.api.party.Competitor;
 import tc.oc.pgm.score.ScoreMatchModule;
 
 public class FinishMatchEmbed {
+  public static final List<Gamemode> SCORE_BLACKLIST = List.of(
+      Gamemode.FREE_FOR_ALL,
+      Gamemode.CAPTURE_THE_WOOL,
+      Gamemode.DESTROY_THE_CORE,
+      Gamemode.DESTROY_THE_MONUMENT);
+
   public static EmbedBuilder create(
       Match match, MapInfo map, List<Stats> winnerStats, List<Stats> loserStats) {
     EmbedBuilder embed = new EmbedBuilder()
@@ -36,19 +41,23 @@ public class FinishMatchEmbed {
         DiscordBot.parseDuration(match.getDuration()),
         true);
 
-    if (match.getMap().getGamemodes().contains(Gamemode.SCOREBOX)) {
+    if (match.getMap().getGamemodes().stream().noneMatch(SCORE_BLACKLIST::contains)) {
+      ScoreMatchModule scoreModule = match.getModule(ScoreMatchModule.class);
       StringBuilder scores = new StringBuilder();
-      for (Map.Entry<Competitor, Double> entry :
-          match.getModule(ScoreMatchModule.class).getScores().entrySet()) {
-        boolean isWinner = match.getWinners().contains(entry.getKey());
-        Competitor team = entry.getKey();
-        int score = (int) Math.round(entry.getValue());
-        scores.append("**").append(team.getDefaultName()).append(":** ").append(score);
+
+      for (Competitor competitor : match.getCompetitors()) {
+        boolean isWinner = match.getWinners().contains(competitor);
+        int score = scoreModule != null
+            ? (int) Math.floor(scoreModule.getScores().get(competitor))
+            : (isWinner ? 1 : 0);
+
+        scores.append("**").append(competitor.getDefaultName()).append(":** ").append(score);
         if (isWinner) {
           scores.append(" 🏆");
         }
         scores.append("\n");
       }
+
       embed.addField(
           "🏆 " + MessagesConfig.message("embeds.finish.score"), scores.toString(), true);
     } else {

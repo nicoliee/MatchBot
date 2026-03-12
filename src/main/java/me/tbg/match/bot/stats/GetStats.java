@@ -1,5 +1,6 @@
 package me.tbg.match.bot.stats;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -128,33 +129,59 @@ public class GetStats {
 
   private static Stats createStats(
       PlayerStats playerStats, String displayName, int totalPoints, Party party) {
+    // K/D
     int kills = playerStats != null ? playerStats.getKills() : 0;
     int deaths = playerStats != null ? playerStats.getDeaths() : 0;
     int assists = playerStats != null ? playerStats.getAssists() : 0;
-    int maxKillstreak = playerStats != null ? playerStats.getMaxKillstreak() : 0;
-    double damageDone = playerStats != null ? (playerStats.getDamageDone() / 2) : 0;
+    int killstreak = playerStats != null ? playerStats.getKillstreak() : 0;
+    int killstreakMax = playerStats != null ? playerStats.getMaxKillstreak() : 0;
+
+    // Bow
+    int longestBowKill = playerStats != null ? playerStats.getLongestBowKill() : 0;
     double bowDamage = playerStats != null ? (playerStats.getBowDamage() / 2) : 0;
-    double damageTaken = playerStats != null ? (playerStats.getDamageTaken() / 2) : 0;
     double bowDamageTaken = playerStats != null ? (playerStats.getBowDamageTaken() / 2) : 0;
     int shotsTaken = playerStats != null ? playerStats.getShotsTaken() : 0;
     int shotsHit = playerStats != null ? playerStats.getShotsHit() : 0;
-    double bowAccuracy = playerStats != null ? playerStats.getArrowAccuracy() : 0;
 
-    Stats stats = new Stats(
+    // Damage
+    double damageDone = playerStats != null ? (playerStats.getDamageDone() / 2) : 0;
+    double damageTaken = playerStats != null ? (playerStats.getDamageTaken() / 2) : 0;
+
+    // Objectives
+    int destroyablePiecesBroken =
+        playerStats != null ? playerStats.getDestroyablePiecesBroken() : 0;
+    int monumentsDestroyed = playerStats != null ? playerStats.getMonumentsDestroyed() : 0;
+    int flagsCaptured = playerStats != null ? playerStats.getFlagsCaptured() : 0;
+    int flagPickups = playerStats != null ? playerStats.getFlagPickups() : 0;
+    int coresLeaked = playerStats != null ? playerStats.getCoresLeaked() : 0;
+    int woolsCaptured = playerStats != null ? playerStats.getWoolsCaptured() : 0;
+    int woolsTouched = playerStats != null ? playerStats.getWoolsTouched() : 0;
+    Duration longestFlagHold =
+        playerStats != null ? playerStats.getLongestFlagHold() : Duration.ZERO;
+
+    return new Stats(
         displayName,
         kills,
         deaths,
         assists,
-        maxKillstreak,
-        damageDone,
+        killstreak,
+        killstreakMax,
+        longestBowKill,
         bowDamage,
-        damageTaken,
         bowDamageTaken,
         shotsTaken,
         shotsHit,
-        bowAccuracy,
+        damageDone,
+        damageTaken,
+        destroyablePiecesBroken,
+        monumentsDestroyed,
+        flagsCaptured,
+        flagPickups,
+        coresLeaked,
+        woolsCaptured,
+        woolsTouched,
+        longestFlagHold,
         totalPoints,
         party);
-    return stats;
   }
 }

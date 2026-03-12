@@ -45,7 +45,7 @@ public class StartMatchEmbed {
         if (!playerNames.isEmpty()) {
           embed.addField(
               team.getDefaultName() + " [👥:" + team.getSize() + "]",
-              String.join("\n", playerNames),
+              String.join("\n", playerNames).replace("_", "\\_"),
               true);
         }
       }
@@ -56,7 +56,7 @@ public class StartMatchEmbed {
           players.stream().map(MatchPlayer::getNameLegacy).collect(Collectors.toList());
       embed.addField(
           "👥 " + MessagesConfig.message("embeds.start.players") + " [" + players.size() + "]",
-          String.join("\n", playerNames),
+          String.join("\n", playerNames).replace("_", "\\_"),
           false);
     } else {
       embed.addField(

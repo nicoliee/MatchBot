@@ -154,7 +154,7 @@ public class ListEmbed {
         if (!playerNames.isEmpty()) {
           embed.addField(
               team.getDefaultName() + " [👥: " + team.getSize() + "]",
-              String.join("\n", playerNames),
+              String.join("\n", playerNames).replace("_", "\\_"),
               true);
         }
       }
@@ -180,7 +180,7 @@ public class ListEmbed {
       if (!playerNames.isEmpty()) {
         embed.addField(
             MessagesConfig.message("embeds.list.players") + " [👥: " + playerNames.size() + "]",
-            String.join("\n", playerNames),
+            String.join("\n", playerNames).replace("_", "\\_"),
             true);
       }
     }

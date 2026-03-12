@@ -23,11 +23,12 @@ public class ListListener extends ListenerAdapter {
       if (event.getMessage().getReferencedMessage() != null) return;
 
       String content = event.getMessage().getContentRaw();
-      if (!content.startsWith("=")) return;
-      String command = content.substring(1).toLowerCase().trim();
-      if (command.equals("list") && BotConfig.isList()) {
+      String listCommand = BotConfig.getListCommand();
+      if (!content.toLowerCase().startsWith(listCommand.toLowerCase())) return;
+      String command = content.trim();
+      if (command.equalsIgnoreCase(listCommand) && BotConfig.isList()) {
         handleListCommand(event, false);
-      } else if (command.equals("list stats") && BotConfig.isList()) {
+      } else if (command.equalsIgnoreCase(listCommand + " stats") && BotConfig.isList()) {
         handleListCommand(event, true);
       }
     } catch (Exception e) {

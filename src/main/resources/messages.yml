@@ -45,12 +45,28 @@ time:
   hours: "Horas"
   hour: "Hora"
 stats:
+  # K/D
   kills: "Kills"
   deaths: "Muertes"
+  kd: "K/D"
   assists: "Asistencias"
   killstreak: "Killstreak"
+  
+  # Damage
   damageDone: "Daño Hecho"
   damageTaken: "Daño Recibido"
-  bowAccuracy: "Flechas dadas"
-  points: "Puntos"
+  
+  # Bow
   bow: "Arco"
+  bowAccuracy: "Flechas dadas"
+  
+  # Objectives
+  coresLeaked: "Cores Filtrados"
+  woolsCaptured: "Lanas Capturadas"
+  woolsTouched: "Lanas Tocadas"
+  flagsCaptured: "Banderas Capturadas"
+  flagPickups: "Banderas Recogidas"
+  destroyablePiecesBroken: "Piezas Destruidas"
+  monumentsDestroyed: "Monumentos Destruidos"
+  longestFlagHold: "Mayor Tiempo con Bandera"
+  points: "Puntos"

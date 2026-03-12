@@ -4,7 +4,9 @@ token: "" # Discord bot token.
 server: "" # ID of discord server.
 match-channel: "" # ID of channel where match embeds will be sent.
 ip: true
-list: true
+list:
+  enabled: true
+  command: "=list" # Command to trigger the list embed. Only works if enabled is true.
 
 # Example: https://raw.githubusercontent.com/TBG1000/MapImages/main/map_image_not_found.png
 map-image-not-found: "" # Image URL to display in the embed's thumbnail if no image is found.
