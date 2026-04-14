@@ -17,6 +17,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import tc.oc.pgm.api.map.MapInfo;
 import tc.oc.pgm.api.match.Match;
@@ -35,9 +36,7 @@ public class MatchListener implements Listener {
   "Perdedores"
   Si la cantidad de jugadores es demasiado grande no mostrará las stats. */
 
-  public MatchListener() {}
-
-  @EventHandler
+  @EventHandler(priority = EventPriority.MONITOR)
   public void onMatchStart(MatchStartEvent event) {
     Match match = event.getMatch();
     DiscordBot.storeMatchStartData(Long.parseLong(match.getId()), Instant.now().getEpochSecond());
