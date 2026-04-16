@@ -16,7 +16,6 @@
         <repository>
             <id>github</id>
             <name>GitHub Packages</name>
-            <!-- Asegúrate de que el nombre del repo coincida EXACTAMENTE -->
             <url>https://maven.pkg.github.com/nicoliee/matchbot</url>
         </repository>
     </distributionManagement>
@@ -31,8 +30,6 @@
             <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
         </repository>
     </repositories>
-
-    <!-- 🔹 Dependencias -->
     <dependencies>
         <dependency>
             <groupId>app.ashcon</groupId>
@@ -44,6 +41,13 @@
         <dependency>
             <groupId>tc.oc.pgm</groupId>
             <artifactId>core</artifactId>
+            <version>0.16-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>tc.oc.pgm</groupId>
+            <artifactId>util</artifactId>
             <version>0.16-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
@@ -65,9 +69,14 @@
             <artifactId>slf4j-simple</artifactId>
             <version>2.0.9</version>
         </dependency>
+
+        <dependency>
+            <groupId>net.kyori</groupId>
+            <artifactId>adventure-platform-api</artifactId>
+            <version>4.4.0-pgm</version>
+        </dependency>
     </dependencies>
 
-    <!-- 🔹 Configuración de build -->
     <build>
         <finalName>MatchBot</finalName>
         <resources>
@@ -78,7 +87,6 @@
         </resources>
 
         <plugins>
-            <!-- Compilación -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -91,7 +99,6 @@
                 </configuration>
             </plugin>
 
-            <!-- Empaquetado con shade -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
